@@ -48,8 +48,6 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('temp_title')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       backgroundColor: const Color(0xFFF0F4F3),

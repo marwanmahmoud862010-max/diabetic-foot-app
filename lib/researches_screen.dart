@@ -60,8 +60,6 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
         builder: (_) => Scaffold(
           appBar: AppBar(
             title: Text(research['institution'] ?? '', style: const TextStyle(fontSize: 14)),
-            backgroundColor: Colors.teal,
-            foregroundColor: Colors.white,
           ),
           body: PdfPreview(
             build: (format) => _generatePdf(research).save(),
@@ -79,8 +77,6 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('researches')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       body: Directionality(
@@ -99,7 +95,7 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: Colors.teal.shade50,
+        color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),

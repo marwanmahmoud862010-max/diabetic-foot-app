@@ -355,8 +355,6 @@ class _ReportScreenState extends State<ReportScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('doctor_report')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       body: Directionality(
@@ -383,7 +381,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.teal.shade200),
                   ),

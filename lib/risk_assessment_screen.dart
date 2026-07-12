@@ -102,8 +102,6 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('risk_assessment_full')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       backgroundColor: const Color(0xFFF0F4F3),

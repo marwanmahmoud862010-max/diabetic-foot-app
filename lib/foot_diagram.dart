@@ -27,6 +27,7 @@ class FootDiagram extends StatelessWidget {
           highlightedRegion: highlightedRegion,
           showLabels: showLabels,
           isLeft: footSide == 'left',
+          greyFill: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
         size: Size(size, size * 1.5),
       ),
@@ -39,12 +40,14 @@ class _FootPainter extends CustomPainter {
   final String? highlightedRegion;
   final bool showLabels;
   final bool isLeft;
+  final Color greyFill;
 
   _FootPainter({
     this.highlightedToe,
     this.highlightedRegion,
     this.showLabels = true,
     this.isLeft = false,
+    required this.greyFill,
   });
 
   @override
@@ -52,7 +55,6 @@ class _FootPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    final greyFill = Colors.grey.shade200;
     final strokeColor = Colors.black;
     final hlOrange = Colors.orange.shade300;
     final sw = w * 0.03;

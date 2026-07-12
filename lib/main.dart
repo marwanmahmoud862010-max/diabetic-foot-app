@@ -58,10 +58,20 @@ class MyApp extends StatelessWidget {
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal, brightness: Brightness.light),
                 useMaterial3: true,
+                appBarTheme: const AppBarTheme(
+                  centerTitle: true,
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                ),
               ),
               darkTheme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal, brightness: Brightness.dark),
                 useMaterial3: true,
+                appBarTheme: AppBarTheme(
+                  centerTitle: true,
+                  backgroundColor: Colors.teal.shade800,
+                  foregroundColor: Colors.white,
+                ),
               ),
               home: const SplashScreen(),
             );

@@ -112,8 +112,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('history')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       body: Directionality(
@@ -127,7 +125,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 decoration: InputDecoration(
                   hintText: LanguageService.t('search'),
                   prefixIcon: const Icon(Icons.search, color: Colors.teal),
-                  filled: true, fillColor: Colors.grey.shade100,
+                  filled: true, fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,

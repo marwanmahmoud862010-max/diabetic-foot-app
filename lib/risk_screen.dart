@@ -72,8 +72,6 @@ class _RiskScreenState extends State<RiskScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('risk_assessment')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       body: Directionality(
@@ -111,7 +109,7 @@ class _RiskScreenState extends State<RiskScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

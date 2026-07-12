@@ -107,11 +107,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: Text(_isEditing ? LanguageService.t('edit_profile') : LanguageService.t('setup_profile_title')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
-      backgroundColor: Colors.teal.shade50,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),

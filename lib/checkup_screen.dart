@@ -101,8 +101,6 @@ class _CheckupScreenState extends State<CheckupScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('checkup_title')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       backgroundColor: const Color(0xFFF0F4F3),

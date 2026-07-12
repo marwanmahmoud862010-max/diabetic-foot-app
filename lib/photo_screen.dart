@@ -146,8 +146,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
       appBar: AppBar(
         title: Text(LanguageService.t('foot_photo')),
         centerTitle: true,
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
         actions: [const DarkModeToggle()],
       ),
       body: Directionality(
@@ -162,7 +160,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
+                          color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.blue.shade200),
                         ),
