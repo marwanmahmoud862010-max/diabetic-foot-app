@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'home_screen.dart';
+import 'login_screen.dart';
+import 'route_transition.dart';
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  Future<void> _navigate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final loggedIn = prefs.getBool('is_logged_in') ?? false;
+    if (!mounted) return;
+    pushReplacementPage(
+      context,
+      loggedIn ? const HomeScreen() : const LoginScreen(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _navigate,
+      child: Scaffold(
+        body: Center(
+          child: Image.asset(
+            'assets/app_design.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+}

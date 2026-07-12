@@ -1,0 +1,263 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// مدير اللغة - بيخزن اللغة الحالية وبيبلّغ التطبيق لما تتغير
+class LanguageService {
+  // اللغة الحالية: 'ar' عربي | 'en' إنجليزي | 'fr' فرنساوي
+  static final ValueNotifier<String> currentLang = ValueNotifier('en');
+
+  // تحميل اللغة المحفوظة عند فتح التطبيق
+  static Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    currentLang.value = prefs.getString('app_lang') ?? 'en';
+  }
+
+  // تغيير اللغة وحفظها
+  static Future<void> setLang(String lang) async {
+    currentLang.value = lang;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('app_lang', lang);
+  }
+
+  // هل اللغة الحالية من اليمين لليسار؟ (العربي بس)
+  static bool get isRTL => currentLang.value == 'ar';
+
+  // دالة الترجمة: بتجيب النص حسب اللغة الحالية
+  static String t(String key) {
+    final lang = currentLang.value;
+    return _translations[key]?[lang] ?? key;
+  }
+
+  // قاموس الترجمات
+  static final Map<String, Map<String, String>> _translations = {
+    // عام
+    'app_name': {'ar': 'StepGuard', 'en': 'StepGuard', 'fr': 'StepGuard'},
+    'app_slogan': {'ar': 'حماية خطوتك هي أولويتنا', 'en': 'Your step, our guard', 'fr': 'Votre pas, notre protection'},
+    'tap_continue': {'ar': 'اضغط للمتابعة', 'en': 'Tap to continue', 'fr': 'Appuyez pour continuer'},
+
+    // الشاشة الرئيسية
+    'choose_checkup': {'ar': 'اختار نوع الفحص', 'en': 'Choose checkup type', 'fr': 'Choisissez le type d\'examen'},
+    'daily_checkup': {'ar': 'الفحص اليومي', 'en': 'Daily Checkup', 'fr': 'Examen Quotidien'},
+    'no_previous_checkup': {'ar': 'مفيش فحص سابق', 'en': 'No previous checkup', 'fr': 'Aucun examen précédent'},
+    'touch_test': {'ar': 'اختبار اللمس', 'en': 'Touch Test', 'fr': 'Test Tactile'},
+    'no_previous_test': {'ar': 'مفيش اختبار سابق', 'en': 'No previous test', 'fr': 'Aucun test précédent'},
+    'temperature': {'ar': 'درجات الحرارة', 'en': 'Temperature', 'fr': 'Température'},
+    'no_previous_measure': {'ar': 'مفيش قياس سابق', 'en': 'No previous measurement', 'fr': 'Aucune mesure précédente'},
+    'prevention_tips': {'ar': 'نصائح الوقاية', 'en': 'Prevention Tips', 'fr': 'Conseils de Prévention'},
+    'prevention_tips_sub': {'ar': 'تعلم كيف تحمي قدمك يومياً', 'en': 'Learn how to protect your foot daily', 'fr': 'Apprenez à protéger votre pied chaque jour'},
+    'foot_photo': {'ar': 'تصوير القدم', 'en': 'Foot Photo', 'fr': 'Photo du Pied'},
+    'foot_photo_sub': {'ar': 'تابع التغييرات أسبوعياً بالصور', 'en': 'Track weekly changes with photos', 'fr': 'Suivez les changements hebdomadaires avec photos'},
+    'risk_assessment': {'ar': 'تقييم الخطر IWGDF', 'en': 'IWGDF Risk Assessment', 'fr': 'Évaluation du Risque IWGDF'},
+    'risk_assessment_sub': {'ar': 'احسب درجة خطر قدمك', 'en': 'Calculate your foot risk level', 'fr': 'Calculez le niveau de risque de votre pied'},
+    'risk_assessment_full': {'ar': 'تقييم الخطر الشامل', 'en': 'Comprehensive Risk Assessment', 'fr': 'Évaluation Complète du Risque'},
+    'risk_assessment_full_sub': {'ar': 'احسب مستوى خطر القدم حسب تصنيف IWGDF', 'en': 'Calculate foot risk by IWGDF classification', 'fr': 'Calculez le risque selon la classification IWGDF'},
+    'history': {'ar': 'السجل التاريخي', 'en': 'History', 'fr': 'Historique'},
+    'history_sub': {'ar': 'شوف كل الفحوصات اللي عملتها', 'en': 'View all your past checkups', 'fr': 'Voir tous vos examens passés'},
+    'doctor_report': {'ar': 'تقرير للدكتور', 'en': 'Doctor Report', 'fr': 'Rapport du Médecin'},
+    'doctor_report_sub': {'ar': 'اطبع تقرير شامل لدكتورك', 'en': 'Print a full report for your doctor', 'fr': 'Imprimez un rapport complet pour votre médecin'},
+
+    // السجل التاريخي
+    'no_history': {'ar': 'لسه مفيش فحوصات', 'en': 'No checkups yet', 'fr': 'Aucun examen pour le moment'},
+
+    // اللغة
+    'language': {'ar': 'اللغة', 'en': 'Language', 'fr': 'Langue'},
+    'choose_language': {'ar': 'اختر اللغة', 'en': 'Choose language', 'fr': 'Choisissez la langue'},
+    'arabic': {'ar': 'العربية', 'en': 'Arabic', 'fr': 'Arabe'},
+    'english': {'ar': 'الإنجليزية', 'en': 'English', 'fr': 'Anglais'},
+    'french': {'ar': 'الفرنسية', 'en': 'French', 'fr': 'Français'},
+
+    // تقييم الخطر الشامل
+    'risk_assessment_q1': {'ar': 'هل فقدت الإحساس الواقي في قدمك؟ (نتيجة اختبار اللمس سلبية)', 'en': 'Have you lost protective sensation in your foot? (negative touch test)', 'fr': 'Avez-vous perdu la sensation protectrice dans votre pied? (test tactile négatif)'},
+    'risk_assessment_q2': {'ar': 'هل عندك ضعف في الدورة الدموية؟ (برودة، ضعف النبض)', 'en': 'Do you have poor circulation? (cold feet, weak pulse)', 'fr': 'Avez-vous une mauvaise circulation? (pieds froids, pouls faible)'},
+    'risk_assessment_q3': {'ar': 'هل في تشوه واضح في شكل القدم؟', 'en': 'Is there a clear foot deformity?', 'fr': 'Y a-t-il une déformation évidente du pied?'},
+    'risk_assessment_q4': {'ar': 'هل حصلت قرحة أو بتر في القدم قبل كده؟', 'en': 'Have you had a foot ulcer or amputation before?', 'fr': 'Avez-vous déjà eu un ulcère ou une amputation du pied?'},
+    'risk_assessment_yes': {'ar': 'أيوه', 'en': 'Yes', 'fr': 'Oui'},
+    'risk_assessment_no': {'ar': 'لا', 'en': 'No', 'fr': 'Non'},
+    'risk_assessment_calc': {'ar': 'احسب مستوى الخطر', 'en': 'Calculate risk level', 'fr': 'Calculer le niveau de risque'},
+    'risk_assessment_intro': {'ar': 'جاوب على الأسئلة دي بمساعدة نتايج فحوصاتك أو طبيبك عشان نحسب مستوى الخطر حسب التصنيف العالمي IWGDF.', 'en': 'Answer these questions with your test results or doctor to calculate your risk level according to the IWGDF classification.', 'fr': 'Répondez à ces questions avec vos résultats ou votre médecin pour calculer votre niveau de risque selon la classification IWGDF.'},
+    'risk_level_0': {'ar': 'خطر منخفض', 'en': 'Low risk', 'fr': 'Risque faible'},
+    'risk_level_1': {'ar': 'خطر متوسط', 'en': 'Moderate risk', 'fr': 'Risque modéré'},
+    'risk_level_2': {'ar': 'خطر مرتفع', 'en': 'High risk', 'fr': 'Risque élevé'},
+    'risk_level_3': {'ar': 'خطر مرتفع جداً', 'en': 'Very high risk', 'fr': 'Risque très élevé'},
+    'risk_advice_0': {'ar': 'مفيش عوامل خطر حالياً. استمر في المتابعة السنوية والعناية بقدمك.', 'en': 'No current risk factors. Continue annual follow-up and foot care.', 'fr': 'Aucun facteur de risque actuel. Continuez le suivi annuel et les soins des pieds.'},
+    'risk_advice_1': {'ar': 'عندك عامل خطر واحد. متابعة كل 6 إلى 12 شهر وافحص قدمك بانتظام.', 'en': 'You have one risk factor. Follow up every 6-12 months and check your foot regularly.', 'fr': 'Vous avez un facteur de risque. Suivi tous les 6-12 mois et vérifiez régulièrement votre pied.'},
+    'risk_advice_2': {'ar': 'عندك فقدان إحساس مع عامل خطر إضافي. متابعة كل 3 إلى 6 شهور وعناية يومية بالقدم.', 'en': 'You have loss of sensation with an additional risk factor. Follow up every 3-6 months with daily foot care.', 'fr': 'Vous avez une perte de sensation avec un facteur de risque supplémentaire. Suivi tous les 3-6 mois avec soins quotidiens des pieds.'},
+    'risk_advice_3': {'ar': 'عندك تاريخ قرحة أو بتر. لازم متابعة مع طبيب القدم كل شهر إلى 3 شهور، وفحص يومي للقدم.', 'en': 'You have a history of ulcer or amputation. Follow up with a foot specialist every 1-3 months with daily foot inspection.', 'fr': 'Vous avez des antécédents d\'ulcère ou d\'amputation. Suivi avec un spécialiste du pied tous les 1-3 mois avec inspection quotidienne.'},
+    'risk_result': {'ar': 'النتيجة', 'en': 'Result', 'fr': 'Résultat'},
+    'risk_ok': {'ar': 'حسناً', 'en': 'OK', 'fr': "D'accord"},
+
+    // الفحص اليومي
+    'checkup_title': {'ar': 'الفحص اليومي', 'en': 'Daily Checkup', 'fr': 'Examen Quotidien'},
+    'checkup_intro': {'ar': 'جاوب على الأسئلة دي عشان أقيم حالة قدمك.', 'en': 'Answer these questions so I can assess your foot condition.', 'fr': 'Répondez à ces questions pour que je puisse évaluer l\'état de votre pied.'},
+    'q_numbness': {'ar': 'هل بتشعر بتنميل في قدمك؟', 'en': 'Do you feel numbness in your foot?', 'fr': 'Ressentez-vous un engourdissement dans votre pied?'},
+    'q_pain': {'ar': 'هل بتشعر بوجع أو حرقة؟', 'en': 'Do you feel pain or burning?', 'fr': 'Ressentez-vous une douleur ou une brûlure?'},
+    'q_wound': {'ar': 'هل في جرح أو تغير لون واضح؟', 'en': 'Is there a wound or clear color change?', 'fr': 'Y a-t-il une plaie ou un changement de couleur évident?'},
+    'numb_none': {'ar': 'مفيش تنميل', 'en': 'No numbness', 'fr': 'Pas d\'engourdissement'},
+    'numb_mild': {'ar': 'تنميل خفيف', 'en': 'Mild numbness', 'fr': 'Léger engourdissement'},
+    'numb_severe': {'ar': 'تنميل شديد', 'en': 'Severe numbness', 'fr': 'Engourdissement sévère'},
+    'pain_none': {'ar': 'مفيش وجع', 'en': 'No pain', 'fr': 'Pas de douleur'},
+    'pain_mild': {'ar': 'وجع خفيف', 'en': 'Mild pain', 'fr': 'Douleur légère'},
+    'pain_severe': {'ar': 'وجع شديد', 'en': 'Severe pain', 'fr': 'Douleur sévère'},
+    'answer_no': {'ar': 'لا', 'en': 'No', 'fr': 'Non'},
+    'answer_yes': {'ar': 'أيوه', 'en': 'Yes', 'fr': 'Oui'},
+    'see_result': {'ar': 'شوف النتيجة', 'en': 'See result', 'fr': 'Voir le résultat'},
+    'result_danger_title': {'ar': '⚠️ لازم تراجع دكتور', 'en': '⚠️ See a doctor', 'fr': '⚠️ Consultez un médecin'},
+    'result_danger_msg': {'ar': 'في أعراض محتاجة تقييم من دكتور متخصص في القدم السكري.', 'en': 'There are symptoms that need evaluation by a diabetic foot specialist.', 'fr': 'Il y a des symptômes qui nécessitent une évaluation par un spécialiste du pied diabétique.'},
+    'result_ok_title': {'ar': '✅ قدمك كويسة', 'en': '✅ Your foot is OK', 'fr': '✅ Votre pied va bien'},
+    'result_ok_msg': {'ar': 'الفحص اليومي مطمئن. استمر في العناية بقدمك.', 'en': 'Your daily checkup is reassuring. Continue caring for your foot.', 'fr': 'Votre examen quotidien est rassurant. Continuez à prendre soin de votre pied.'},
+    'ok_btn': {'ar': 'حسناً', 'en': 'OK', 'fr': "D'accord"},
+
+    // اختبار اللمس
+    'touch_title': {'ar': 'اختبار اللمس', 'en': 'Touch Test', 'fr': 'Test Tactile'},
+    'touch_intro': {'ar': 'المفروض ده يعمله الدكتور أو مقدم رعاية مدرب. استخدم خيط أحادي 10g (monofilament) والمس 3 نقاط في كل قدم لمدة ثانيتين.', 'en': 'This should be done by a doctor or trained caregiver. Use a 10g monofilament and touch 3 points on each foot for 2 seconds.', 'fr': 'Cela doit être fait par un médecin ou un soignant formé. Utilisez un monofilament de 10g et touchez 3 points sur chaque pied pendant 2 secondes.'},
+    'right_foot': {'ar': 'القدم اليمنى', 'en': 'Right Foot', 'fr': 'Pied Droit'},
+    'left_foot': {'ar': 'القدم اليسرى', 'en': 'Left Foot', 'fr': 'Pied Gauche'},
+    'toe_1': {'ar': 'إصبع 1 (السبابة)', 'en': 'Toe 1 (index)', 'fr': 'Orteil 1 (index)'},
+    'toe_3': {'ar': 'إصبع 3', 'en': 'Toe 3', 'fr': 'Orteil 3'},
+    'toe_5': {'ar': 'إصبع 5 (الخنصر)', 'en': 'Toe 5 (pinky)', 'fr': 'Orteil 5 (petit)'},
+    'felt_it': {'ar': 'حسّ', 'en': 'Felt it', 'fr': 'Senti'},
+    'not_felt': {'ar': 'ميحسش', 'en': 'Not felt', 'fr': 'Pas senti'},
+    'touch_cat0': {'ar': '✅ إحساس سليم', 'en': '✅ Normal sensation', 'fr': '✅ Sensation normale'},
+    'touch_cat1': {'ar': '⚠️ إحساس منخفض', 'en': '⚠️ Reduced sensation', 'fr': '⚠️ Sensation réduite'},
+    'touch_cat2': {'ar': '🚨 فقدان إحساس', 'en': '🚨 Loss of sensation', 'fr': '🚨 Perte de sensation'},
+    'touch_advice0': {'ar': 'إحساسك طبيعي. استمر في العناية السنوية.', 'en': 'Your sensation is normal. Continue annual care.', 'fr': 'Votre sensation est normale. Continuez les soins annuels.'},
+    'touch_advice1': {'ar': 'في نقص بسيط. كرر الاختبار كل 3 شهور.', 'en': 'There is a slight reduction. Repeat the test every 3 months.', 'fr': 'Il y a une légère réduction. Répétez le test tous les 3 mois.'},
+    'touch_advice2': {'ar': 'فقدان إحساس محتمل. راجع طبيبك فوراً.', 'en': 'Possible loss of sensation. See your doctor immediately.', 'fr': 'Perte de sensation possible. Consultez votre médecin immédiatement.'},
+
+    // درجات الحرارة
+    'temp_title': {'ar': 'درجات الحرارة', 'en': 'Temperature', 'fr': 'Température'},
+    'temp_intro': {'ar': 'قس درجة الحرارة في كل منطقة. لو الفرق بين القدمين أكتر من 2.2°C، ده مؤشر التهاب.', 'en': 'Measure temperature in each area. If the difference between feet is more than 2.2°C, this indicates inflammation.', 'fr': 'Mesurez la température dans chaque zone. Si la différence entre les pieds est supérieure à 2,2°C, cela indique une inflammation.'},
+    'temp_heel': {'ar': 'الكعب', 'en': 'Heel', 'fr': 'Talón'},
+    'temp_mid': {'ar': 'منتصف القدم', 'en': 'Midfoot', 'fr': 'Milieu du pied'},
+    'temp_toes': {'ar': 'أصابع القدم', 'en': 'Toes', 'fr': 'Orteils'},
+    'temp_right': {'ar': 'يمين', 'en': 'Right', 'fr': 'Droit'},
+    'temp_left': {'ar': 'يسار', 'en': 'Left', 'fr': 'Gauche'},
+    'temp_hint': {'ar': 'مثال: 32.5', 'en': 'e.g. 32.5', 'fr': 'ex: 32,5'},
+    'temp_check': {'ar': 'افحص درجة الحرارة', 'en': 'Check temperature', 'fr': 'Vérifier la température'},
+    'temp_diff': {'ar': 'الفرق', 'en': 'Difference', 'fr': 'Différence'},
+    'degree': {'ar': '°C', 'en': '°C', 'fr': '°C'},
+    'temp_danger_title': {'ar': '⚠️ تحذير: التهاب محتمل', 'en': '⚠️ Warning: Possible inflammation', 'fr': '⚠️ Attention: Inflammation possible'},
+    'temp_danger_intro': {'ar': 'في فرق درجة حرارة كبير في:', 'en': 'There is a large temperature difference in:', 'fr': 'Il y a une grande différence de température dans:'},
+    'temp_danger_advice': {'ar': 'المفروض تراجع دكتور متخصص لو استمر الفرق.', 'en': 'You should see a specialist if the difference persists.', 'fr': 'Vous devriez consulter un spécialiste si la différence persiste.'},
+    'temp_ok_title': {'ar': '✅ الحرارة طبيعية', 'en': '✅ Temperature is normal', 'fr': '✅ La température est normale'},
+    'temp_ok_msg': {'ar': 'مفيش فرق كبير في درجة الحرارة بين القدمين.', 'en': 'No significant temperature difference between feet.', 'fr': 'Pas de différence de température significative entre les pieds.'},
+    'temp_danger': {'ar': '⚠️ تحذير: التهاب محتمل', 'en': '⚠️ Warning: Possible inflammation', 'fr': '⚠️ Attention: Inflammation possible'},
+    'temp_ok': {'ar': '✅ الحرارة متوازنة', 'en': '✅ Temperature balanced', 'fr': '✅ Température équilibrée'},
+    'checkup_danger': {'ar': '⚠️ لازم مراجعة دكتور', 'en': '⚠️ Doctor visit needed', 'fr': '⚠️ Consultation médicale nécessaire'},
+    'checkup_ok': {'ar': '✅ الفحص مطمئن', 'en': '✅ Checkup is reassuring', 'fr': '✅ Examen rassurant'},
+
+    // شاشة البروفايل
+    'welcome_title': {'ar': 'أهلاً بك في حماية قدمك', 'en': 'Welcome to Diabetic Foot', 'fr': 'Bienvenue à Pied Diabétique'},
+    'welcome_sub': {'ar': 'أدخل بياناتك عشان نقدر نساعدك أحسن', 'en': 'Enter your info so we can help you better', 'fr': 'Entrez vos infos pour mieux vous aider'},
+    'name_label': {'ar': 'الاسم', 'en': 'Name', 'fr': 'Nom'},
+    'name_hint': {'ar': 'مثال: أحمد محمد', 'en': 'e.g. John Smith', 'fr': 'ex: Jean Dupont'},
+    'age_label': {'ar': 'العمر', 'en': 'Age', 'fr': 'Âge'},
+    'age_hint': {'ar': 'مثال: 45', 'en': 'e.g. 45', 'fr': 'ex: 45'},
+    'diabetes_years_label': {'ar': 'كام سنة عندك السكري؟', 'en': 'Years with diabetes?', 'fr': 'Années avec le diabète?'},
+    'diabetes_years_hint': {'ar': 'مثال: 5', 'en': 'e.g. 5', 'fr': 'ex: 5'},
+    'diabetes_type_label': {'ar': 'نوع السكري', 'en': 'Diabetes type', 'fr': 'Type de diabète'},
+    'type_1': {'ar': 'النوع الأول', 'en': 'Type 1', 'fr': 'Type 1'},
+    'type_2': {'ar': 'النوع الثاني', 'en': 'Type 2', 'fr': 'Type 2'},
+    'gestational': {'ar': 'سكري الحمل', 'en': 'Gestational', 'fr': 'Gestationnel'},
+    'start_button': {'ar': 'ابدأ', 'en': 'Start', 'fr': 'Commencer'},
+    'enter_name_error': {'ar': 'من فضلك أدخل اسمك', 'en': 'Please enter your name', 'fr': 'Veuillez entrer votre nom'},
+    'save_changes': {'ar': 'حفظ التعديلات', 'en': 'Save changes', 'fr': 'Enregistrer'},
+    'photo_intro': {'ar': 'صوّر قدمك كل أسبوع وقارن الصور عشان تلاحظ أي تغيير في اللون أو الشكل.', 'en': 'Take a photo of your foot every week and compare to notice any color or shape changes.', 'fr': 'Prenez une photo de votre pied chaque semaine et comparez pour remarquer tout changement de couleur ou de forme.'},
+    'photo_right': {'ar': 'القدم اليمنى', 'en': 'Right Foot', 'fr': 'Pied Droit'},
+    'photo_left': {'ar': 'القدم اليسرى', 'en': 'Left Foot', 'fr': 'Pied Gauche'},
+    'photo_tap_to_add': {'ar': 'اضغط + للتصوير', 'en': 'Tap + to take photo', 'fr': 'Appuyez sur + pour prendre une photo'},
+    'photo_look_for': {'ar': 'إيه اللي تدور عليه؟', 'en': 'What to look for?', 'fr': 'Que rechercher ?'},
+    'photo_warning1': {'ar': 'احمرار أو تغيير في اللون', 'en': 'Redness or color change', 'fr': 'Rougeur ou changement de couleur'},
+    'photo_warning2': {'ar': 'تورم أو انتفاخ', 'en': 'Swelling or puffiness', 'fr': 'Gonflement ou enflure'},
+    'photo_warning3': {'ar': 'جروح أو بثور', 'en': 'Wounds or blisters', 'fr': 'Plaies ou ampoules'},
+    'photo_warning4': {'ar': 'كالو مفرط في نقطة واحدة', 'en': 'Excessive callus at one point', 'fr': 'Cal excessif à un point'},
+    'photo_warning5': {'ar': 'إفرازات أو رطوبة زيادة', 'en': 'Discharge or excess moisture', 'fr': 'Écoulement ou humidité excessive'},
+    'photo_camera': {'ar': 'تصوير بالكاميرا', 'en': 'Take photo', 'fr': 'Prendre une photo'},
+    'photo_gallery': {'ar': 'اختيار من المعرض', 'en': 'Choose from gallery', 'fr': 'Choisir depuis la galerie'},
+    'photo_unavailable': {'ar': 'الصورة غير متوفرة', 'en': 'Image not available', 'fr': 'Image non disponible'},
+    'tip_1_title': {'ar': 'لا تمشي حافياً أبداً', 'en': 'Never walk barefoot', 'fr': 'Ne marchez jamais pieds nus'},
+    'tip_1_desc': {'ar': 'حتى داخل البيت — ارتدِ حذاء أو شراب دايماً.', 'en': 'Even indoors — always wear shoes or socks.', 'fr': 'Même à l\'intérieur — portez toujours des chaussures ou des chaussettes.'},
+    'tip_2_title': {'ar': 'افحص جوه الحذاء قبل لبسه', 'en': 'Check inside your shoes before wearing', 'fr': 'Vérifiez l\'intérieur de vos chaussures avant de les porter'},
+    'tip_2_desc': {'ar': 'تأكد مفيش حاجة غريبة جوه الحذاء قبل ما تلبسه.', 'en': 'Make sure there is nothing strange inside before putting them on.', 'fr': 'Assurez-vous qu\'il n\'y a rien d\'étrange à l\'intérieur avant de les enfiler.'},
+    'tip_3_title': {'ar': 'اغسل قدمك يومياً', 'en': 'Wash your feet daily', 'fr': 'Lavez vos pieds quotidiennement'},
+    'tip_3_desc': {'ar': 'اغسل بميه دافية وجفف كويس بين الأصابع.', 'en': 'Wash with warm water and dry well between toes.', 'fr': 'Lavez à l\'eau tiède et séchez bien entre les orteils.'},
+    'tip_4_title': {'ar': 'قص الأظافر بشكل مستقيم', 'en': 'Cut nails straight across', 'fr': 'Coupez les ongles droits'},
+    'tip_4_desc': {'ar': 'قص الأظافر على طول مش منحنية عشان تتجنب الإلتهابات.', 'en': 'Cut nails straight across to avoid ingrown nails.', 'fr': 'Coupez les ongles droits pour éviter les infections.'},
+    'tip_5_title': {'ar': 'افحص قدمك بالمرآة', 'en': 'Check your feet with a mirror', 'fr': 'Vérifiez vos pieds avec un miroir'},
+    'tip_5_desc': {'ar': 'استخدم مرآة عشان تشوف أسفل قدمك يومياً.', 'en': 'Use a mirror to see the bottom of your feet daily.', 'fr': 'Utilisez un miroir pour voir le dessous de vos pieds quotidiennement.'},
+    'tip_6_title': {'ar': 'روح الدكتور فوراً لو', 'en': 'See a doctor immediately if', 'fr': 'Consultez un médecin immédiatement si'},
+    'tip_6_desc': {'ar': 'لو شفت جرح أو احمرار أو تورم أو حسيت بحرق شديد.', 'en': 'If you see a wound, redness, swelling, or feel severe burning.', 'fr': 'Si vous voyez une plaie, rougeur, gonflement ou ressentez une brûlure sévère.'},
+    'report_title': {'ar': 'تقرير صحي شخصي', 'en': 'Personal Health Report', 'fr': 'Rapport de Santé Personnel'},
+    'report_patient_data': {'ar': 'بيانات المريض', 'en': 'Patient Data', 'fr': 'Données du Patient'},
+    'report_name': {'ar': 'الاسم', 'en': 'Name', 'fr': 'Nom'},
+    'report_age': {'ar': 'العمر', 'en': 'Age', 'fr': 'Âge'},
+    'report_diabetes_type': {'ar': 'نوع السكري', 'en': 'Diabetes Type', 'fr': 'Type de Diabète'},
+    'report_duration': {'ar': 'مدة المرض', 'en': 'Duration', 'fr': 'Durée'},
+    'report_years': {'ar': 'سنة', 'en': 'years', 'fr': 'ans'},
+    'report_date': {'ar': 'التاريخ', 'en': 'Date', 'fr': 'Date'},
+    'report_last_results': {'ar': 'آخر الفحوصات', 'en': 'Latest Results', 'fr': 'Derniers Résultats'},
+    'report_history': {'ar': 'السجل التاريخي', 'en': 'History Log', 'fr': 'Historique'},
+    'report_checkup': {'ar': 'الفحص اليومي', 'en': 'Daily Checkup', 'fr': 'Examen Quotidien'},
+    'report_touch': {'ar': 'اختبار اللمس', 'en': 'Touch Test', 'fr': 'Test Tactile'},
+    'report_temp': {'ar': 'درجات الحرارة', 'en': 'Temperature', 'fr': 'Température'},
+    'report_risk': {'ar': 'تقييم الخطر', 'en': 'Risk Assessment', 'fr': 'Évaluation du Risque'},
+    'report_no_data': {'ar': 'لا يوجد', 'en': 'No data', 'fr': 'Aucune donnée'},
+    'report_note': {'ar': 'ملاحظة: هذا التقرير لأغراض المتابعة فقط ولا يُغني عن الاستشارة الطبية المباشرة.', 'en': 'Note: This report is for follow-up purposes only and does not replace direct medical consultation.', 'fr': 'Remarque : Ce rapport est uniquement à des fins de suivi et ne remplace pas une consultation médicale directe.'},
+    'report_save_pdf': {'ar': 'حفظ PDF', 'en': 'Save PDF', 'fr': 'Enregistrer PDF'},
+    'report_loading': {'ar': 'خطأ في تحميل التقرير', 'en': 'Error loading report', 'fr': 'Erreur de chargement du rapport'},
+    'report_no_name': {'ar': 'بدون اسم', 'en': 'No name', 'fr': 'Sans nom'},
+    'report_no_age': {'ar': 'بدون عمر', 'en': 'No age', 'fr': 'Sans âge'},
+    'report_exams': {'ar': 'فحص', 'en': 'exam', 'fr': 'examen'},
+    'edit_profile': {'ar': 'تعديل البيانات', 'en': 'Edit Profile', 'fr': 'Modifier le profil'},
+    'daily_reminder': {'ar': 'تذكير يومي', 'en': 'Daily Reminder', 'fr': 'Rappel quotidien'},
+    'daily_reminder_body': {'ar': 'حان وقت الفحص اليومي! افتح التطبيق وافحص قدمك.', 'en': 'Time for your daily checkup! Open the app and check your feet.', 'fr': "C'est l'heure de l'examen quotidien! Ouvrez l'app et vérifiez vos pieds."},
+    'reminder_on': {'ar': 'تم تفعيل التذكير اليومي', 'en': 'Daily reminder enabled', 'fr': 'Rappel quotidien activé'},
+    'reminder_off': {'ar': 'تم إلغاء التذكير اليومي', 'en': 'Daily reminder disabled', 'fr': 'Rappel quotidien désactivé'},
+    'delete_confirm': {'ar': 'هل تريد حذف هذا الفحص؟', 'en': 'Delete this entry?', 'fr': 'Supprimer cette entrée ?'},
+    'delete': {'ar': 'حذف', 'en': 'Delete', 'fr': 'Supprimer'},
+    'cancel': {'ar': 'إلغاء', 'en': 'Cancel', 'fr': 'Annuler'},
+    'risk_score': {'ar': 'النقاط', 'en': 'Score', 'fr': 'Score'},
+    'risk_recommendations': {'ar': 'التوصيات:', 'en': 'Recommendations:', 'fr': 'Recommandations :'},
+    'risk_cat_0': {'ar': 'فئة 0 - لا خطر', 'en': 'Class 0 - No risk', 'fr': 'Classe 0 - Aucun risque'},
+    'risk_cat_1': {'ar': 'فئة 1 - خطر بسيط', 'en': 'Class 1 - Low risk', 'fr': 'Classe 1 - Risque faible'},
+    'risk_cat_2': {'ar': 'فئة 2 - خطر متوسط', 'en': 'Class 2 - Moderate risk', 'fr': 'Classe 2 - Risque modéré'},
+    'risk_cat_3': {'ar': 'فئة 3 - خطر عالي', 'en': 'Class 3 - High risk', 'fr': 'Classe 3 - Risque élevé'},
+    'risk_rec_0': {'ar': 'حالتك جيدة. استمر في الفحص الذاتي شهرياً وراجع دكتورك سنوياً.', 'en': 'Your condition is good. Continue monthly self-examination and see your doctor annually.', 'fr': 'Votre état est bon. Continuez l\'auto-examen mensuel et consultez votre médecin annuellement.'},
+    'risk_rec_1': {'ar': 'لديك خطر بسيط. افحص قدميك أسبوعياً وراجع دكتورك كل 6 أشهر.', 'en': 'You have low risk. Check your feet weekly and see your doctor every 6 months.', 'fr': 'Vous avez un risque faible. Vérifiez vos pieds chaque semaine et consultez votre médecin tous les 6 mois.'},
+    'risk_rec_2': {'ar': 'لديك خطر متوسط. افحص قدميك يومياً وراجع دكتورك كل 3 أشهر.', 'en': 'You have moderate risk. Check your feet daily and see your doctor every 3 months.', 'fr': 'Vous avez un risque modéré. Vérifiez vos pieds quotidiennement et consultez votre médecin tous les 3 mois.'},
+    'risk_rec_3': {'ar': 'لديك خطر عالي. راجع دكتورك فوراً وافحص قدميك يومياً.', 'en': 'You have high risk. See your doctor immediately and check your feet daily.', 'fr': 'Vous avez un risque élevé. Consultez votre médecin immédiatement et vérifiez vos pieds quotidiennement.'},
+    'pdf_saved': {'ar': 'تم حفظ التقرير', 'en': 'Report saved', 'fr': 'Rapport enregistré'},
+    'pdf_filename': {'ar': 'تقرير_طبي', 'en': 'Medical_Report', 'fr': 'Rapport_Medical'},
+    'researches': {'ar': 'الأبحاث', 'en': 'Researches', 'fr': 'Recherches'},
+    'researches_sub': {'ar': 'أحدث الأبحاث العلمية عن القدم السكري', 'en': 'Latest research on diabetic foot', 'fr': 'Dernières recherches sur le pied diabétique'},
+    'research_institution': {'ar': 'الجهة', 'en': 'Institution', 'fr': 'Institution'},
+    'research_date': {'ar': 'تاريخ النشر', 'en': 'Publication date', 'fr': 'Date de publication'},
+    'research_no_content': {'ar': 'المحتوى غير متاح بعد', 'en': 'Content not available yet', 'fr': 'Contenu pas encore disponible'},
+    'doctor_phone': {'ar': 'رقم الدكتور', 'en': 'Doctor\'s Phone', 'fr': 'Téléphone du médecin'},
+    'doctor_phone_hint': {'ar': 'مثال: 201234567890+', 'en': 'e.g. +201234567890', 'fr': 'Ex: +201234567890'},
+    'send_whatsapp': {'ar': 'إرسال للدكتور عبر واتساب', 'en': 'Send to Doctor via WhatsApp', 'fr': 'Envoyer au médecin via WhatsApp'},
+    'whatsapp_sent': {'ar': 'تم فتح واتساب', 'en': 'WhatsApp opened', 'fr': 'WhatsApp ouvert'},
+    'no_doctor_number': {'ar': 'لا يوجد رقم دكتور. أضف رقم الدكتور أولاً من تعديل البيانات.', 'en': 'No doctor number. Add a doctor\'s number in Edit Profile first.', 'fr': 'Pas de numéro de médecin. Ajoutez d\'abord un numéro dans Modifier le profil.'},
+    'login_title': {'ar': 'تسجيل الدخول', 'en': 'Sign In', 'fr': 'Connexion'},
+    'login_subtitle': {'ar': 'سجل برقم هاتفك أو بريدك الإلكتروني', 'en': 'Sign in with your phone or email', 'fr': 'Connectez-vous avec votre téléphone ou votre email'},
+    'phone_label': {'ar': 'رقم الهاتف', 'en': 'Phone Number', 'fr': 'Numéro de téléphone'},
+    'phone_hint': {'ar': 'مثال: 201234567890+', 'en': 'e.g. +201234567890', 'fr': 'Ex: +201234567890'},
+    'email_label': {'ar': 'البريد الإلكتروني (Google)', 'en': 'Email (Google)', 'fr': 'Email (Google)'},
+    'email_hint': {'ar': 'مثال: example@gmail.com', 'en': 'e.g. example@gmail.com', 'fr': 'Ex: example@gmail.com'},
+    'login_button': {'ar': 'تسجيل الدخول', 'en': 'Sign In', 'fr': 'Se connecter'},
+    'setup_profile_later': {'ar': 'تخطي الآن', 'en': 'Skip for now', 'fr': 'Passer pour le moment'},
+    'setup_profile_title': {'ar': 'كمل بيانات بروفايلك', 'en': 'Set Up Your Profile', 'fr': 'Configurez votre profil'},
+    'setup_profile_desc': {'ar': 'أضف صورتك وبياناتك عشان نتابع حالتك أحسن', 'en': 'Add your photo and details for better tracking', 'fr': 'Ajoutez votre photo et vos détails pour un meilleur suivi'},
+    'setup_profile_btn': {'ar': 'إعداد البروفايل', 'en': 'Set Up Profile', 'fr': 'Configurer le profil'},
+    'setup_later_btn': {'ar': 'لاحقاً', 'en': 'Later', 'fr': 'Plus tard'},
+    'profile_photo': {'ar': 'صورة البروفايل', 'en': 'Profile Photo', 'fr': 'Photo de profil'},
+    'change_photo': {'ar': 'تغيير الصورة', 'en': 'Change Photo', 'fr': 'Changer la photo'},
+    'camera': {'ar': 'كاميرا', 'en': 'Camera', 'fr': 'Appareil photo'},
+    'gallery': {'ar': 'معرض الصور', 'en': 'Gallery', 'fr': 'Galerie'},
+    'email_phone_required': {'ar': 'من فضلك أدخل رقم الهاتف والبريد الإلكتروني', 'en': 'Please enter your phone number and email', 'fr': 'Veuillez entrer votre numéro de téléphone et votre email'},
+    'ai_chat_title': {'ar': 'SoleMate 🤖', 'en': 'SoleMate 🤖', 'fr': 'SoleMate 🤖'},
+    'ai_chat_hint': {'ar': 'اسأل عن القدم السكري...', 'en': 'Ask about diabetic foot...', 'fr': 'Posez une question sur le pied diabétique...'},
+    'ai_chat_greeting': {'ar': 'مرحباً! 👋 أنا SoleMate، رفيق قدمك الذكي. أسألني أي سؤال عن العناية بالقدم السكري.', 'en': 'Hello! 👋 I\'m SoleMate, your smart foot companion. Ask me anything about diabetic foot care.', 'fr': 'Bonjour! 👋 Je suis SoleMate, votre compagnon intelligent pour les pieds. Posez-moi n\'importe quelle question sur le soin du pied diabétique.'},
+    'ai_chat_think': {'ar': 'الدكتور بيفكر...', 'en': 'Doctor is thinking...', 'fr': 'Le docteur réfléchit...'},
+  };
+}
