@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'forgot_password_screen.dart';
 import 'route_transition.dart';
+import 'language_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
     if (email.isEmpty || password.isEmpty) {
-      _showSnack('برجاء إدخال الإيميل والباسوورد');
+      _showSnack(LanguageService.t('login_error_empty'));
       return;
     }
     setState(() => _loading = true);
@@ -36,17 +37,17 @@ class _LoginScreenState extends State<LoginScreen> {
         } on FirebaseAuthException catch (e2) {
           setState(() => _loading = false);
           if (e2.code == 'email-already-in-use') {
-            _showSnack('الباسوورد غلط');
+            _showSnack(LanguageService.t('login_wrong_password'));
           } else {
-            _showSnack(e2.message ?? 'خطأ في إنشاء الحساب');
+            _showSnack(e2.message ?? LanguageService.t('login_create_account_error'));
           }
         }
       } else if (e.code == 'wrong-password') {
         setState(() => _loading = false);
-        _showSnack('الباسوورد غلط');
+        _showSnack(LanguageService.t('login_wrong_password'));
       } else {
         setState(() => _loading = false);
-        _showSnack(e.message ?? 'خطأ');
+        _showSnack(e.message ?? LanguageService.t('general_error'));
       }
     } catch (e) {
       setState(() => _loading = false);
@@ -89,16 +90,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Icon(Icons.person, color: Colors.white, size: 56),
                 ),
                 const SizedBox(height: 24),
-                const Text('تسجيل الدخول', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                Text(LanguageService.t('login_title'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                const Text('سجل بإيميلك وباسووردك', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                Text(LanguageService.t('login_subtitle'), style: const TextStyle(fontSize: 14, color: Colors.grey)),
                 const SizedBox(height: 32),
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'الإيميل',
-                    hintText: 'أدخل الإيميل',
+                    labelText: LanguageService.t('email_label'),
+                    hintText: LanguageService.t('email_hint'),
                     prefixIcon: const Icon(Icons.email, color: Colors.teal),
                     filled: true, fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -112,8 +113,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'الباسوورد',
-                    hintText: 'أدخل الباسوورد',
+                    labelText: LanguageService.t('password_label'),
+                    hintText: LanguageService.t('password_hint'),
                     prefixIcon: const Icon(Icons.lock, color: Colors.teal),
                     filled: true, fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -127,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
-                    child: Text('نسيت الباسوورد؟',
+                    child: Text(LanguageService.t('forgot_password'),
                         style: TextStyle(color: Colors.teal.shade700, fontSize: 13)),
                   ),
                 ),
@@ -144,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: _loading
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('تسجيل الدخول', style: TextStyle(fontSize: 18)),
+                        : Text(LanguageService.t('login_button'), style: const TextStyle(fontSize: 18)),
                   ),
                 ),
               ],

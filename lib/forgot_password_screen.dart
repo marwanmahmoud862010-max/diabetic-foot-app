@@ -23,7 +23,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendOtp() async {
     final email = emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      _showSnack('برجاء إدخال إيميل صحيح');
+      _showSnack(LanguageService.t('forgot_email_empty'));
       return;
     }
     setState(() => _loading = true);
@@ -32,7 +32,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       await EmailService.sendOtpEmail(email, _otpCode);
       _email = email;
       setState(() { _otpSent = true; _loading = false; });
-      _showSnack('تم إرسال الكود إلى $email');
+      _showSnack('${LanguageService.t('forgot_otp_sent')} $email');
     } catch (e) {
       setState(() => _loading = false);
       _showSnack(e.toString());
@@ -41,8 +41,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _verifyOtp() async {
     final otp = otpController.text.trim();
-    if (otp.isEmpty) { _showSnack('برجاء إدخال الكود'); return; }
-    if (otp != _otpCode) { _showSnack('الكود غير صحيح'); return; }
+    if (otp.isEmpty) { _showSnack(LanguageService.t('forgot_otp_empty')); return; }
+    if (otp != _otpCode) { _showSnack(LanguageService.t('forgot_otp_wrong')); return; }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('email', _email);
     await prefs.setBool('is_logged_in', true);
@@ -85,9 +85,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: const Icon(Icons.lock_reset, color: Colors.white, size: 48),
                 ),
                 const SizedBox(height: 24),
-                Text('نسيت الباسوورد', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                Text(LanguageService.t('forgot_password_title'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text(_otpSent ? 'أدخل الكود المرسل إلى بريدك' : 'أدخل إيميلك لاستعادة الحساب',
+                Text(LanguageService.t(_otpSent ? 'forgot_password_subtitle_otp' : 'forgot_password_subtitle_send'),
                     style: const TextStyle(fontSize: 14, color: Colors.grey)),
                 const SizedBox(height: 32),
                 if (!_otpSent) ...[
@@ -110,8 +110,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: otpController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'OTP',
-                      hintText: 'أدخل الكود',
+                      labelText: LanguageService.t('otp_label'),
+                      hintText: LanguageService.t('otp_hint'),
                       prefixIcon: const Icon(Icons.lock, color: Colors.teal),
                       filled: true, fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -134,7 +134,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     child: _loading
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(_otpSent ? 'تسجيل الدخول' : 'إرسال الكود', style: const TextStyle(fontSize: 18)),
+                        : Text(_otpSent ? LanguageService.t('login_button') : LanguageService.t('forgot_send_code'), style: const TextStyle(fontSize: 18)),
                   ),
                 ),
               ],

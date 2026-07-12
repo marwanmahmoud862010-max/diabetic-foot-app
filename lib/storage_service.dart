@@ -1,56 +1,65 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageService {
   static final Map<String, String> _analysisStore = {};
 
-  // ===== Photo methods =====
+  // ===== Photo methods (cross-platform base64) =====
 
-  static Future<void> savePhotoPath(String foot, String path) async {
+  static Future<void> savePhoto(String foot, List<int> bytes, {String? existingId}) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = 'photos_$foot';
-    final list = (prefs.getStringList(key) ?? [])..add(path);
-    await prefs.setStringList(key, list);
+    final id = existingId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final base64Str = base64Encode(bytes);
+    await prefs.setString('photo_data_$id', base64Str);
+    if (existingId == null) {
+      final key = 'photos_$foot';
+      final list = prefs.getStringList(key) ?? [];
+      list.add(id);
+      await prefs.setStringList(key, list);
+    }
   }
 
   static Future<List<Map<String, String>>> getPhotos(String foot) async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'photos_$foot';
-    final paths = prefs.getStringList(key) ?? [];
+    final ids = prefs.getStringList(key) ?? [];
     final list = <Map<String, String>>[];
-    for (final path in paths) {
-      final date = prefs.getString('${path}_date') ?? '';
-      final analysis = _analysisStore[path] ?? (prefs.getString('${path}_analysis') ?? '');
-      final risk = prefs.getString('${path}_risk') ?? '';
-      list.add({'path': path, 'date': date, 'analysis': analysis, 'risk': risk});
+    for (final id in ids) {
+      final data = prefs.getString('photo_data_$id') ?? '';
+      final date = prefs.getString('photo_date_$id') ?? '';
+      final analysis = _analysisStore[id] ?? (prefs.getString('photo_analysis_$id') ?? '');
+      final risk = prefs.getString('photo_risk_$id') ?? '';
+      list.add({'id': id, 'data': data, 'date': date, 'analysis': analysis, 'risk': risk});
     }
     return list.reversed.toList();
   }
 
-  static Future<void> saveAnalysis(String path, String analysis, String risk) async {
+  static Future<void> saveAnalysis(String id, String analysis, String risk) async {
     final prefs = await SharedPreferences.getInstance();
-    _analysisStore[path] = analysis;
-    await prefs.setString('${path}_analysis', analysis);
-    await prefs.setString('${path}_risk', risk);
+    _analysisStore[id] = analysis;
+    await prefs.setString('photo_analysis_$id', analysis);
+    await prefs.setString('photo_risk_$id', risk);
     final now = DateTime.now();
     final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    await prefs.setString('${path}_date', dateStr);
+    await prefs.setString('photo_date_$id', dateStr);
   }
 
-  static Future<void> deletePhoto(String path) async {
+  static Future<void> deletePhoto(String id) async {
     final prefs = await SharedPreferences.getInstance();
     for (final foot in ['right', 'left']) {
       final key = 'photos_$foot';
       final list = prefs.getStringList(key) ?? [];
-      if (list.contains(path)) {
-        list.remove(path);
+      if (list.contains(id)) {
+        list.remove(id);
         await prefs.setStringList(key, list);
         break;
       }
     }
-    await prefs.remove('${path}_analysis');
-    await prefs.remove('${path}_risk');
-    await prefs.remove('${path}_date');
-    _analysisStore.remove(path);
+    await prefs.remove('photo_data_$id');
+    await prefs.remove('photo_analysis_$id');
+    await prefs.remove('photo_risk_$id');
+    await prefs.remove('photo_date_$id');
+    _analysisStore.remove(id);
   }
 
   static Future<List<Map<String, String>>> getAllPhotos() async {

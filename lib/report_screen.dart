@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'storage_service.dart';
@@ -216,14 +214,7 @@ class _ReportScreenState extends State<ReportScreen> {
     );
 
     final bytes = await pdf.save();
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/تقرير_طبي.pdf');
-    await file.writeAsBytes(bytes);
-
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${LanguageService.t('pdf_saved')}: ${file.path}')),
-    );
     await Printing.sharePdf(bytes: Uint8List.fromList(bytes), filename: '${LanguageService.t('pdf_filename')}.pdf');
   }
 

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final doctorPhoneController = TextEditingController();
   final phoneController = TextEditingController();
   String selectedType = 'type_2';
-  String? _photoPath;
+  String? _photoData;
   bool get _isEditing => widget.existingData != null;
 
   @override
@@ -33,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _photoPath = prefs.getString('profile_photo');
+      _photoData = prefs.getString('profile_photo');
       phoneController.text = prefs.getString('phone') ?? '';
       doctorPhoneController.text = prefs.getString('doctor_phone') ?? '';
     });
@@ -61,7 +61,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: source, maxWidth: 512, maxHeight: 512);
     if (picked != null) {
-      setState(() => _photoPath = picked.path);
+      final bytes = await picked.readAsBytes();
+      setState(() => _photoData = base64Encode(bytes));
     }
   }
 
@@ -124,14 +125,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: BoxDecoration(
                         color: Colors.teal,
                         shape: BoxShape.circle,
-                        image: _photoPath != null
+                        image: _photoData != null
                             ? DecorationImage(
-                                image: FileImage(File(_photoPath!)),
+                                image: MemoryImage(base64Decode(_photoData!)),
                                 fit: BoxFit.cover,
                               )
                             : null,
                       ),
-                      child: _photoPath == null
+                      child: _photoData == null
                           ? const Icon(Icons.person, color: Colors.white, size: 56)
                           : null,
                     ),
@@ -266,8 +267,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await prefs.setString('diabetes_years', diabetesController.text);
     await prefs.setString('diabetes_type', selectedType);
     await prefs.setString('doctor_phone', doctorPhoneController.text);
-    if (_photoPath != null) {
-      await prefs.setString('profile_photo', _photoPath!);
+    if (_photoData != null) {
+      await prefs.setString('profile_photo', _photoData!);
     }
     await prefs.setBool('profile_done', true);
 
