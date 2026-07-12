@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('is_logged_in', false);
+    await prefs.clear();
     if (!mounted) return;
     pushReplacementPage(context, const LoginScreen());
   }
@@ -274,12 +274,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _toggleReminder() async {
-    final enabled = await NotificationService.isEnabled();
-    await NotificationService.setEnabled(!enabled);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(LanguageService.t(enabled ? 'reminder_off' : 'reminder_on'))),
-    );
+    try {
+      final enabled = await NotificationService.isEnabled();
+      await NotificationService.setEnabled(!enabled);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(LanguageService.t(enabled ? 'reminder_off' : 'reminder_on'))),
+      );
+    } catch (_) {}
   }
 
   void _showLanguageSheet() {

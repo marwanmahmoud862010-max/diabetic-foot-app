@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/foundation.dart';
 import 'language_service.dart';
 
 class NotificationService {
@@ -7,6 +8,7 @@ class NotificationService {
   static const _reminderKey = 'daily_reminder_enabled';
 
   static Future<void> init() async {
+    if (kIsWeb) return;
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -28,6 +30,7 @@ class NotificationService {
   static Future<void> setEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_reminderKey, enabled);
+    if (kIsWeb) return;
     if (enabled) {
       await _scheduleDaily();
     } else {
@@ -36,6 +39,7 @@ class NotificationService {
   }
 
   static Future<void> _scheduleDaily() async {
+    if (kIsWeb) return;
     final title = LanguageService.t('app_name');
     final body = LanguageService.t('daily_reminder_body');
     final channel = LanguageService.t('daily_checkup');
@@ -60,6 +64,7 @@ class NotificationService {
   }
 
   static Future<void> showNotificationNow(String title, String body) async {
+    if (kIsWeb) return;
     await flutterLocalNotificationsPlugin.show(
       1, title, body,
       NotificationDetails(

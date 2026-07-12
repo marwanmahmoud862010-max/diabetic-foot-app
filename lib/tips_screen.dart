@@ -266,7 +266,7 @@ class _TypingDotsState extends State<_TypingDots>
             final t = (_controller.value - delay).clamp(0.0, 1.0);
             final bounce = (t < 0.5) ? 2 * t : 2 * (1 - t);
             return Padding(
-              padding: EdgeInsets.only(right: i < 2 ? 4 : 0),
+              padding: EdgeInsetsDirectional.only(end: i < 2 ? 4 : 0),
               child: Transform.translate(
                 offset: Offset(0, -bounce * 4),
                 child: Container(

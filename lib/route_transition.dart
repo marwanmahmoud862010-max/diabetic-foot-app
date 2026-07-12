@@ -43,12 +43,13 @@ class _BrandedTransition extends StatelessWidget {
                 : 0.0;
         final pageSlide = 30 * (1 - _interval(0.55, 1.0, animation.value));
         final pageFade = _interval(0.55, 1.0, animation.value);
+        final isRtl = Directionality.of(context) == TextDirection.rtl;
 
         return Stack(
           children: [
             Container(color: Colors.white),
             Transform.translate(
-              offset: Offset(pageSlide, 0),
+              offset: Offset(isRtl ? -pageSlide : pageSlide, 0),
               child: Opacity(
                 opacity: pageFade,
                 child: page,
