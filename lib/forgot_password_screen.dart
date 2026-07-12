@@ -4,6 +4,7 @@ import 'home_screen.dart';
 import 'route_transition.dart';
 import 'email_service.dart';
 import 'language_service.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -71,6 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.teal),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [const DarkModeToggle()],
       ),
       body: SafeArea(
         child: Center(

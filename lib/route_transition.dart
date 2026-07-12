@@ -6,8 +6,8 @@ Route<dynamic> _buildRoute(Widget page) {
       page: page,
       animation: animation,
     ),
-    transitionDuration: const Duration(milliseconds: 2000),
-    reverseTransitionDuration: const Duration(milliseconds: 2000),
+    transitionDuration: const Duration(milliseconds: 800),
+    reverseTransitionDuration: const Duration(milliseconds: 800),
   );
 }
 

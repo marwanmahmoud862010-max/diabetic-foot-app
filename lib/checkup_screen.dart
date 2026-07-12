@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'storage_service.dart';
 import 'language_service.dart';
 import 'doctor_avatar.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class CheckupScreen extends StatefulWidget {
   const CheckupScreen({super.key});
@@ -102,6 +103,7 @@ class _CheckupScreenState extends State<CheckupScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       backgroundColor: const Color(0xFFF0F4F3),
       body: Directionality(

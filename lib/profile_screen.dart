@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'language_service.dart';
 import 'route_transition.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, String>? existingData;
@@ -108,6 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       backgroundColor: Colors.teal.shade50,
       body: SafeArea(

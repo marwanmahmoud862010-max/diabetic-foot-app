@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'onboarding_screen.dart';
 import 'route_transition.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -19,11 +20,16 @@ class _SplashScreenState extends State<SplashScreen> {
     _navigating = true;
     final prefs = await SharedPreferences.getInstance();
     final loggedIn = prefs.getBool('is_logged_in') ?? false;
+    final onboardingDone = prefs.getBool('onboarding_done') ?? false;
     if (!mounted) return;
-    pushReplacementPage(
-      context,
-      loggedIn ? const HomeScreen() : const LoginScreen(),
-    );
+    if (!onboardingDone) {
+      pushReplacementPage(context, const OnboardingScreen());
+    } else {
+      pushReplacementPage(
+        context,
+        loggedIn ? const HomeScreen() : const LoginScreen(),
+      );
+    }
   }
 
   @override

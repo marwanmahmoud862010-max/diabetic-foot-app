@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_config.dart';
 import 'splash_screen.dart';
 import 'language_service.dart';
 import 'notification_service.dart';
+import 'theme_service.dart';
+import 'providers/app_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +24,20 @@ void main() async {
     ),
   );
   await LanguageService.load();
+  final prefs = await SharedPreferences.getInstance();
+  final darkMode = prefs.getBool('dark_mode') ?? false;
+  themeModeNotifier.value = darkMode ? ThemeMode.dark : ThemeMode.light;
   try {
     await NotificationService.init();
   } catch (_) {}
-  runApp(const MyApp());
+  runApp(
+    ProviderScope(
+      overrides: [
+        prefsProvider.overrideWithValue(prefs),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -34,14 +48,24 @@ class MyApp extends StatelessWidget {
     return ValueListenableBuilder<String>(
       valueListenable: LanguageService.currentLang,
       builder: (context, lang, _) {
-        return MaterialApp(
-          title: LanguageService.t('app_name'),
-          locale: Locale(lang),
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-            useMaterial3: true,
-          ),
-          home: const SplashScreen(),
+        return ValueListenableBuilder<ThemeMode>(
+          valueListenable: themeModeNotifier,
+          builder: (context, mode, _) {
+            return MaterialApp(
+              title: LanguageService.t('app_name'),
+              locale: Locale(lang),
+              themeMode: mode,
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal, brightness: Brightness.light),
+                useMaterial3: true,
+              ),
+              darkTheme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal, brightness: Brightness.dark),
+                useMaterial3: true,
+              ),
+              home: const SplashScreen(),
+            );
+          },
         );
       },
     );

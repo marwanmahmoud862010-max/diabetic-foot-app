@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'storage_service.dart';
 import 'language_service.dart';
 import 'notification_service.dart';
+import 'error_handler.dart';
 import 'checkup_screen.dart';
 import 'photo_screen.dart';
 import 'tips_screen.dart';
@@ -18,37 +19,26 @@ import 'researches_screen.dart';
 import 'ai_chat_screen.dart';
 import 'route_transition.dart';
 import 'login_screen.dart';
+import 'theme_service.dart';
+import 'widgets/dark_mode_toggle.dart';
+import 'providers/app_providers.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  String? lastCheckup;
-  String? lastTouch;
-  String? lastTemp;
-  bool _profileDone = false;
-
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
     LanguageService.currentLang.addListener(_onLangChanged);
-    _checkProfile();
   }
 
   void _onLangChanged() {
     if (mounted) setState(() {});
-  }
-
-  Future<void> _checkProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _profileDone = prefs.getBool('profile_done') ?? false;
-    });
   }
 
   @override
@@ -57,19 +47,13 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    final checkup = await StorageService.getLastCheckup();
-    final touch = await StorageService.getLastTouchTest();
-    final temp = await StorageService.getLastTemperature();
-    setState(() {
-      lastCheckup = checkup['result'];
-      lastTouch = touch['result'];
-      lastTemp = temp['result'];
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final checkupAsync = ref.watch(lastCheckupProvider);
+    final touchAsync = ref.watch(lastTouchTestProvider);
+    final tempAsync = ref.watch(lastTemperatureProvider);
+    final profileAsync = ref.watch(profileDoneProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(LanguageService.t('app_name')),
@@ -92,6 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.language, color: Colors.white),
             label: const Text('', style: TextStyle(color: Colors.white)),
           ),
+          const DarkModeToggle(),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: LanguageService.t('logout'),
@@ -99,12 +84,38 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Directionality(
-        textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,
+      body: profileAsync.when(
+        loading: () => ErrorHandler.loadingWidget(),
+        error: (_, _) => _buildBody(checkupAsync, touchAsync, tempAsync, false),
+        data: (profileDone) => _buildBody(checkupAsync, touchAsync, tempAsync, profileDone),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => pushPage(context, const AiChatScreen()),
+        backgroundColor: const Color(0xFF004D40),
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.auto_awesome),
+      ),
+    );
+  }
+
+  Widget _buildBody(AsyncValue<String?> checkupAsync, AsyncValue<String?> touchAsync, AsyncValue<String?> tempAsync, bool profileDone) {
+    final lastCheckup = checkupAsync.asData?.value;
+    final lastTouch = touchAsync.asData?.value;
+    final lastTemp = tempAsync.asData?.value;
+
+    return Directionality(
+      textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(lastCheckupProvider);
+          ref.invalidate(lastTouchTestProvider);
+          ref.invalidate(lastTemperatureProvider);
+          ref.invalidate(profileDoneProvider);
+        },
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            if (!_profileDone) ...[
+            if (!profileDone) ...[
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -154,11 +165,11 @@ class _HomeScreenState extends State<HomeScreen> {
               title: LanguageService.t('daily_checkup'),
               subtitle: lastCheckup == null
                   ? LanguageService.t('no_previous_checkup')
-                  : LanguageService.t(lastCheckup!),
+                  : LanguageService.t(lastCheckup),
               color: Colors.teal,
               onTap: () async {
                 await pushPage(context, const CheckupScreen());
-                _loadData();
+                ref.invalidate(lastCheckupProvider);
               }),
             const SizedBox(height: 12),
             _buildCard(context,
@@ -166,11 +177,11 @@ class _HomeScreenState extends State<HomeScreen> {
               title: LanguageService.t('touch_test'),
               subtitle: lastTouch == null
                   ? LanguageService.t('no_previous_test')
-                  : LanguageService.t(lastTouch!),
+                  : LanguageService.t(lastTouch),
               color: Colors.blue,
               onTap: () async {
                 await pushPage(context, const TouchTestScreen());
-                _loadData();
+                ref.invalidate(lastTouchTestProvider);
               }),
             const SizedBox(height: 12),
             _buildCard(context,
@@ -178,11 +189,11 @@ class _HomeScreenState extends State<HomeScreen> {
               title: LanguageService.t('temperature'),
               subtitle: lastTemp == null
                   ? LanguageService.t('no_previous_measure')
-                  : LanguageService.t(lastTemp!),
+                  : LanguageService.t(lastTemp),
               color: Colors.orange,
               onTap: () async {
                 await pushPage(context, const TemperatureScreen());
-                _loadData();
+                ref.invalidate(lastTemperatureProvider);
               }),
             const SizedBox(height: 12),
             _buildCard(context,
@@ -243,12 +254,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => pushPage(context, const AiChatScreen()),
-        backgroundColor: const Color(0xFF004D40),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.auto_awesome),
-      ),
     );
   }
 
@@ -271,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'diabetes_type': prefs.getString('diabetes_type') ?? 'type_2',
         'phone': prefs.getString('phone') ?? '',
       }));
-    _checkProfile();
+    ref.invalidate(profileDoneProvider);
   }
 
   Future<void> _toggleReminder() async {
@@ -282,7 +287,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(LanguageService.t(enabled ? 'reminder_off' : 'reminder_on'))),
       );
-    } catch (_) {}
+    } catch (e) {
+      ErrorHandler.showSnackBar(context, e);
+    }
   }
 
   void _showLanguageSheet() {
@@ -305,6 +312,16 @@ class _HomeScreenState extends State<HomeScreen> {
             _langTile(LanguageService.t('arabic'), 'ar'),
             _langTile(LanguageService.t('english'), 'en'),
             _langTile(LanguageService.t('french'), 'fr'),
+            const Divider(),
+            SwitchListTile(
+              title: Text(LanguageService.t(ThemeService.isDark ? 'dark_mode' : 'light_mode')),
+              value: ThemeService.isDark,
+              onChanged: (_) async {
+                await ThemeService.toggle();
+                if (mounted) Navigator.pop(context);
+              },
+              secondary: Icon(ThemeService.isDark ? Icons.dark_mode : Icons.light_mode),
+            ),
             const SizedBox(height: 8),
           ],
         ),

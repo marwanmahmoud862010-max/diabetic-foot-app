@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'storage_service.dart';
 import 'language_service.dart';
 import 'api_config.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class PhotoScreen extends StatefulWidget {
   const PhotoScreen({super.key});
@@ -147,6 +148,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       body: Directionality(
         textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,

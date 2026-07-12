@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'language_service.dart';
+import 'error_handler.dart';
+import 'widgets/dark_mode_toggle.dart';
+import 'providers/app_providers.dart';
 
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
-  List<Map<String, String>> history = [];
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+  List<Map<String, String>> _filtered = [];
+  final _searchCtrl = TextEditingController();
+  String _typeFilter = 'all';
+
+  static const _types = ['all', 'daily_checkup', 'touch_test', 'temperature', 'risk_assessment'];
 
   @override
   void initState() {
     super.initState();
-    _loadHistory();
     LanguageService.currentLang.addListener(_onLangChanged);
+    _searchCtrl.addListener(_applyFilter);
   }
 
   void _onLangChanged() {
@@ -26,21 +34,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void dispose() {
     LanguageService.currentLang.removeListener(_onLangChanged);
+    _searchCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _loadHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String> raw = prefs.getStringList('full_history') ?? [];
+  void _applyFilter() {
+    final history = ref.read(fullHistoryProvider).asData?.value ?? [];
+    final query = _searchCtrl.text.toLowerCase();
     setState(() {
-      history = raw.map((e) {
-        final parts = e.split('||');
-        return {
-          'type': parts.isNotEmpty ? parts[0] : '',
-          'result': parts.length > 1 ? parts[1] : '',
-          'date': parts.length > 2 ? parts[2] : '',
-        };
-      }).toList().reversed.toList();
+      _filtered = history.where((item) {
+        if (_typeFilter != 'all' && item['type'] != _typeFilter) return false;
+        if (query.isEmpty) return true;
+        final type = LanguageService.t(item['type'] ?? '').toLowerCase();
+        final result = LanguageService.t(item['result'] ?? '').toLowerCase();
+        final date = (item['date'] ?? '').toLowerCase();
+        return type.contains(query) || result.contains(query) || date.contains(query);
+      }).toList();
     });
   }
 
@@ -60,12 +69,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
     if (confirm != true) return;
 
+    final history = ref.read(fullHistoryProvider).asData?.value ?? [];
     final prefs = await SharedPreferences.getInstance();
     final List<String> raw = prefs.getStringList('full_history') ?? [];
     final reversedIndex = history.length - 1 - index;
     raw.removeAt(reversedIndex);
     await prefs.setStringList('full_history', raw);
-    await _loadHistory();
+    ref.invalidate(fullHistoryProvider);
   }
 
   String _typeLabel(String type) {
@@ -96,99 +106,138 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final historyAsync = ref.watch(fullHistoryProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(LanguageService.t('history')),
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       body: Directionality(
         textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,
-        child: history.isEmpty
-            ? Center(
-                child: Text(
-                  LanguageService.t('no_history'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: LanguageService.t('search'),
+                  prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                  filled: true, fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: history.length,
-                itemBuilder: (context, index) {
-                  final item = history[index];
-                  final isGood = _isGood(item['result'] ?? '');
-                  final d = item['date'] ?? '';
-                  return Dismissible(
-                    key: ValueKey('${item['date']}_$index'),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: AlignmentDirectional.centerEnd,
-                      padding: const EdgeInsetsDirectional.only(end: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.delete, color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 38,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: _types.map((type) {
+                  final selected = type == _typeFilter;
+                  return Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: FilterChip(
+                      label: Text(type == 'all' ? LanguageService.t('all') : LanguageService.t(type), style: TextStyle(fontSize: 12, color: selected ? Colors.white : Colors.teal.shade700)),
+                      selected: selected,
+                      selectedColor: Colors.teal,
+                      backgroundColor: Colors.teal.shade50,
+                      onSelected: (_) {
+                        setState(() => _typeFilter = type);
+                        _applyFilter();
+                      },
                     ),
-                    confirmDismiss: (_) async {
-                      await _deleteItem(index);
-                      return false;
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: isGood ? Colors.green.shade50 : Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isGood
-                              ? Colors.green.shade200
-                              : Colors.red.shade200,
-                        ),
+                  );
+                }).toList(),
+              ),
+            ),
+            Expanded(
+              child: historyAsync.when(
+                loading: () => ErrorHandler.loadingWidget(),
+                error: (e, _) => Center(child: Text('$e', style: const TextStyle(color: Colors.red))),
+                data: (history) {
+                  if (_filtered.isEmpty && _searchCtrl.text.isEmpty && _typeFilter == 'all') {
+                    _filtered = history;
+                  }
+                  if (_filtered.isEmpty) {
+                    return Center(
+                      child: Text(
+                        LanguageService.t('no_history'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isGood ? Icons.check_circle : Icons.warning,
-                            color: isGood ? Colors.green : Colors.red,
+                    );
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(fullHistoryProvider);
+                    },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _filtered.length,
+                      itemBuilder: (context, index) {
+                        final item = _filtered[index];
+                        final isGood = _isGood(item['result'] ?? '');
+                        final d = item['date'] ?? '';
+                        return Dismissible(
+                          key: ValueKey('${item['date']}_$index'),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: AlignmentDirectional.centerEnd,
+                            padding: const EdgeInsetsDirectional.only(end: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.red, borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.delete, color: Colors.white),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          confirmDismiss: (_) async {
+                            final realIndex = history.indexOf(item);
+                            if (realIndex >= 0) await _deleteItem(realIndex);
+                            return false;
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isGood ? Colors.green.shade50 : Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: isGood ? Colors.green.shade200 : Colors.red.shade200),
+                            ),
+                            child: Row(
                               children: [
-                                Text(
-                                  _typeLabel(item['type'] ?? ''),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                Icon(isGood ? Icons.check_circle : Icons.warning, color: isGood ? Colors.green : Colors.red),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(_typeLabel(item['type'] ?? ''), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      Text(_resultLabel(item['result'] ?? ''), style: TextStyle(fontSize: 13, color: isGood ? Colors.green.shade800 : Colors.red.shade800)),
+                                    ],
                                   ),
                                 ),
-                                Text(
-                                  _resultLabel(item['result'] ?? ''),
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: isGood
-                                        ? Colors.green.shade800
-                                        : Colors.red.shade800,
-                                  ),
-                                ),
+                                Text(d.length >= 10 ? d.substring(0, 10) : d, style: const TextStyle(fontSize: 11, color: Colors.grey)),
                               ],
                             ),
                           ),
-                          Text(
-                            d.length >= 10 ? d.substring(0, 10) : d,
-                            style: const TextStyle(
-                                fontSize: 11, color: Colors.grey),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   );
                 },
               ),
+            ),
+          ],
+        ),
       ),
     );
   }

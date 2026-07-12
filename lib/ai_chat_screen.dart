@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'api_config.dart';
 import 'language_service.dart';
 import 'doctor_avatar.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -161,6 +162,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
         backgroundColor: const Color(0xFF004D40),
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [const DarkModeToggle()],
       ),
       body: Directionality(
         textDirection: isRTL ? TextDirection.rtl : TextDirection.ltr,

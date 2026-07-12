@@ -1,30 +1,108 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:diabetic_foot_app/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:diabetic_foot_app/language_service.dart';
+import 'package:diabetic_foot_app/error_handler.dart';
+import 'package:diabetic_foot_app/storage_service.dart';
+import 'package:diabetic_foot_app/theme_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  group('LanguageService', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('has required translation keys', () async {
+      await LanguageService.load();
+      expect(LanguageService.t('app_name'), isNotEmpty);
+      expect(LanguageService.t('daily_checkup'), isNotEmpty);
+      expect(LanguageService.t('history'), isNotEmpty);
+      expect(LanguageService.t('network_error'), isNotEmpty);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('returns unknown key as fallback', () async {
+      await LanguageService.load();
+      expect(LanguageService.t('nonexistent_key'), equals('nonexistent_key'));
+    });
+
+    test('switching language updates currentLang', () async {
+      await LanguageService.load();
+      await LanguageService.setLang('en');
+      expect(LanguageService.currentLang.value, equals('en'));
+      expect(LanguageService.isRTL, isFalse);
+
+      await LanguageService.setLang('ar');
+      expect(LanguageService.currentLang.value, equals('ar'));
+      expect(LanguageService.isRTL, isTrue);
+    });
+  });
+
+  group('ThemeService', () {
+    test('init loads saved theme', () async {
+      SharedPreferences.setMockInitialValues({'dark_mode': true});
+      await ThemeService.init();
+      expect(ThemeService.isDark, isTrue);
+    });
+
+    test('toggle switches theme', () async {
+      SharedPreferences.setMockInitialValues({'dark_mode': false});
+      await ThemeService.init();
+      final wasDark = ThemeService.isDark;
+      await ThemeService.toggle();
+      expect(ThemeService.isDark, isNot(wasDark));
+    });
+  });
+
+  group('ErrorHandler', () {
+    testWidgets('loadingWidget shows CircularProgressIndicator', (tester) async {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: ErrorHandler.loadingWidget())));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('loadingWidget shows message', (tester) async {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: ErrorHandler.loadingWidget(message: 'Loading...'))));
+      expect(find.text('Loading...'), findsOneWidget);
+    });
+
+    testWidgets('showSnackBar displays message', (tester) async {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: Builder(builder: (context) {
+        return ElevatedButton(
+          onPressed: () => ErrorHandler.showSnackBar(context, 'Test error'),
+          child: const Text('Show'),
+        );
+      }))));
+      await tester.tap(find.text('Show'));
+      await tester.pump();
+      expect(find.text('Test error'), findsOneWidget);
+    });
+  });
+
+  group('StorageService', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    test('save and get full history', () async {
+      await StorageService.saveCheckup('checkup_ok');
+      final history = await StorageService.getFullHistory();
+      expect(history.length, equals(1));
+      expect(history[0]['type'], equals('daily_checkup'));
+      expect(history[0]['result'], equals('checkup_ok'));
+      expect(history[0]['date'], isNotEmpty);
+    });
+
+    test('getLastCheckup returns latest', () async {
+      await StorageService.saveCheckup('checkup_ok');
+      await StorageService.saveTouchTest('touch_cat0');
+      final checkup = await StorageService.getLastCheckup();
+      expect(checkup['result'], equals('checkup_ok'));
+    });
+
+    test('empty history returns defaults', () async {
+      final checkup = await StorageService.getLastCheckup();
+      expect(checkup['result'], equals(''));
+    });
   });
 }

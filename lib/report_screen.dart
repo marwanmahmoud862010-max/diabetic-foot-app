@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'storage_service.dart';
 import 'language_service.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -356,6 +357,7 @@ class _ReportScreenState extends State<ReportScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       body: Directionality(
         textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'language_service.dart';
 import 'storage_service.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class RiskScreen extends StatefulWidget {
   const RiskScreen({super.key});
@@ -73,6 +74,7 @@ class _RiskScreenState extends State<RiskScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       body: Directionality(
         textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,

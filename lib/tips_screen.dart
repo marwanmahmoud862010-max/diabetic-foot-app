@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'language_service.dart';
 import 'doctor_avatar.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class TipsScreen extends StatefulWidget {
   const TipsScreen({super.key});
@@ -89,6 +90,7 @@ class _TipsScreenState extends State<TipsScreen> {
         backgroundColor: const Color(0xFF004D40),
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [const DarkModeToggle()],
       ),
       body: Directionality(
         textDirection: isRTL ? TextDirection.rtl : TextDirection.ltr,

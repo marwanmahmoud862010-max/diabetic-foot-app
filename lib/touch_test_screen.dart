@@ -3,6 +3,7 @@ import 'storage_service.dart';
 import 'language_service.dart';
 import 'foot_diagram.dart';
 import 'doctor_avatar.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class TouchTestScreen extends StatefulWidget {
   const TouchTestScreen({super.key});
@@ -105,6 +106,7 @@ class _TouchTestScreenState extends State<TouchTestScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       backgroundColor: const Color(0xFFF0F4F3),
       body: Directionality(

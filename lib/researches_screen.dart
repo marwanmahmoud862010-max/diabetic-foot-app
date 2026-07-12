@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'language_service.dart';
+import 'widgets/dark_mode_toggle.dart';
 
 class ResearchesScreen extends StatefulWidget {
   const ResearchesScreen({super.key});
@@ -80,6 +81,7 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        actions: [const DarkModeToggle()],
       ),
       body: Directionality(
         textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,
