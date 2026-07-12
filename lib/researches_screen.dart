@@ -28,11 +28,8 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
     super.dispose();
   }
 
-  String _lang() => LanguageService.currentLang.value;
-
   pw.Document _generatePdf(Map<String, String> research) {
     final pdf = pw.Document();
-    final isAr = _lang() == 'ar';
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -40,7 +37,7 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
         build: (ctx) => [
           pw.Header(text: research['institution'] ?? '', level: 0),
           pw.Paragraph(
-            text: '${isAr ? 'تاريخ النشر' : 'Publication date'}: ${research['date'] ?? ''}',
+            text: '${LanguageService.t('research_date')}: ${research['date'] ?? ''}',
             style: pw.TextStyle(fontSize: 12, color: PdfColors.grey),
           ),
           pw.SizedBox(height: 16),

@@ -98,9 +98,7 @@ class _TipsScreenState extends State<TipsScreen> {
           itemBuilder: (context, index) {
             int idx = index;
             if (idx == 0) {
-              final text = isRTL
-                  ? 'مرحباً بك! 👋\nأنا دكتورك الشخصي للعناية بالقدم. هقدملك أهم النصائح للعناية بقدميك.'
-                  : 'Welcome! 👋\nI\'m your personal foot care doctor. Here are the most important tips for your feet.';
+              final text = LanguageService.t('ai_chat_greeting');
               return DoctorChatBubble(message: text, isRTL: isRTL);
             }
             idx--;

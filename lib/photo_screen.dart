@@ -73,7 +73,11 @@ class _PhotoScreenState extends State<PhotoScreen> {
             {
               'role': 'user',
               'content': [
-                {'type': 'text', 'text': 'Analyze this foot photo. Tell me in Arabic if there is: redness, swelling, wounds, callus, discoloration, or any abnormality. Keep response short (2 lines max). If healthy say "القدم سليمة".'},
+                {'type': 'text', 'text': LanguageService.isRTL
+                    ? 'حلل صورة القدم هذه. أخبرني إذا كان هناك: احمرار، تورم، جروح، كالو، تغير في اللون، أو أي شيء غير طبيعي. ابدأ ردك بـ RISK لو في مشكلة أو SAFE لو القدم سليمة. رد بجملة واحدة قصيرة.'
+                    : LanguageService.currentLang.value == 'fr'
+                        ? 'Analysez cette photo de pied. Dites-moi s\'il y a: rougeur, gonflement, plaies, callosités, décoloration ou anomalie. Commencez votre réponse par RISK s\'il y a un problème ou SAFE si le pied est sain. Répondez en une phrase courte.'
+                        : 'Analyze this foot photo. Tell me if there is: redness, swelling, wounds, callus, discoloration, or any abnormality. Start your reply with RISK if there is a problem or SAFE if the foot is healthy. Keep response to one short sentence.'},
                 {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
               ],
             },
@@ -85,7 +89,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final analysis = data['choices'][0]['message']['content'] as String;
-        final isRisk = analysis.contains('احمرار') || analysis.contains('تورم') || analysis.contains('جرح') || analysis.contains('كالو') || analysis.contains('غير طبيعي') || analysis.contains('مشكلة');
+        final isRisk = analysis.startsWith('RISK') || analysis.startsWith('risk');
         final photos = foot == 'right' ? _rightPhotos : _leftPhotos;
         if (photos.isNotEmpty) {
           await StorageService.saveAnalysis(photos.first['id'] ?? '', analysis, isRisk ? 'high' : 'low');
@@ -113,12 +117,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera, color: Colors.teal),
-              title: const Text('كاميرا'),
+              title: Text(LanguageService.t('photo_camera')),
               onTap: () { Navigator.pop(context); _takePhoto(foot); },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: Colors.teal),
-              title: const Text('معرض الصور'),
+              title: Text(LanguageService.t('photo_gallery')),
               onTap: () { Navigator.pop(context); _pickFromGallery(foot); },
             ),
           ],
@@ -155,34 +159,34 @@ class _PhotoScreenState extends State<PhotoScreen> {
                         child: Text(LanguageService.t('photo_intro'), style: const TextStyle(fontSize: 13)),
                       ),
                       const SizedBox(height: 24),
-                      _buildFootPhoto('القدم اليمنى', 'right', Colors.teal, _rightPhotos),
+                      _buildFootPhoto(LanguageService.t('photo_right'), 'right', Colors.teal, _rightPhotos),
                       const SizedBox(height: 16),
-                      _buildFootPhoto('القدم اليسرى', 'left', Colors.blue, _leftPhotos),
+                      _buildFootPhoto(LanguageService.t('photo_left'), 'left', Colors.blue, _leftPhotos),
                       const SizedBox(height: 24),
-                      const Text('إيه اللي تدور عليه؟', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(LanguageService.t('photo_look_for'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
-                      _buildWarning('🔴 احمرار أو تغيير في اللون'),
-                      _buildWarning('🟡 تورم أو انتفاخ'),
-                      _buildWarning('⚫ جروح أو بثور'),
-                      _buildWarning('🟤 كالو مفرط في نقطة واحدة'),
-                      _buildWarning('💧 إفرازات أو رطوبة زيادة'),
+                      _buildWarning(LanguageService.t('photo_warning1')),
+                      _buildWarning(LanguageService.t('photo_warning2')),
+                      _buildWarning(LanguageService.t('photo_warning3')),
+                      _buildWarning(LanguageService.t('photo_warning4')),
+                      _buildWarning(LanguageService.t('photo_warning5')),
                     ],
                   ),
                   if (_analyzing)
                     Container(
                       color: Colors.black54,
-                      child: const Center(
+                      child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            CircularProgressIndicator(color: Colors.white),
-                            SizedBox(height: 12),
-                            Text('جاري تحليل الصورة...', style: TextStyle(color: Colors.white, fontSize: 16)),
+                            const CircularProgressIndicator(color: Colors.white),
+                            const SizedBox(height: 12),
+                            Text(LanguageService.t('photo_analyzing'), style: const TextStyle(color: Colors.white, fontSize: 16)),
                           ],
                         ),
                       ),
                     ),
-                ],
+                  ],
               ),
       ),
     );
@@ -206,7 +210,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
               TextButton.icon(
                 onPressed: () => _showComparison(foot, title, photos),
                 icon: const Icon(Icons.compare, size: 18),
-                label: const Text('مقارنة'),
+                label: Text(LanguageService.t('photo_compare')),
               ),
           ],
         ),
@@ -228,7 +232,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                     children: [
                       Icon(Icons.camera_alt, color: color, size: 40),
                       const SizedBox(height: 8),
-                      Text('اضغط لتصوير $title', style: TextStyle(color: color, fontSize: 13)),
+                      Text('${LanguageService.t('photo_tap_to_capture')}$title', style: TextStyle(color: color, fontSize: 13)),
                     ],
                   )
                 : Stack(
@@ -244,13 +248,13 @@ class _PhotoScreenState extends State<PhotoScreen> {
                             ? Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)),
-                                child: const Text('⚠️ يحتاج متابعة', style: TextStyle(color: Colors.white, fontSize: 11)),
+                                child: Text(LanguageService.t('photo_risk_high'), style: const TextStyle(color: Colors.white, fontSize: 11)),
                               )
                             : risk == 'low'
                                 ? Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(12)),
-                                    child: const Text('✅ سليم', style: TextStyle(color: Colors.white, fontSize: 11)),
+                                    child: Text(LanguageService.t('photo_risk_low'), style: const TextStyle(color: Colors.white, fontSize: 11)),
                                   )
                                 : const SizedBox(),
                       ),
@@ -260,7 +264,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                           color: Colors.black54,
                           child: Text(
-                            analysis.isNotEmpty ? analysis : '${photos.length} صور',
+                            analysis.isNotEmpty ? analysis : '${photos.length} ${LanguageService.t('photo_images_count')}',
                             style: const TextStyle(color: Colors.white, fontSize: 11),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -285,7 +289,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(12),
-              child: Text('مقارنة $title', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: Text('${LanguageService.t('photo_compare')} $title', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
             SizedBox(
               height: 300,
@@ -296,7 +300,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                   padding: const EdgeInsets.all(4),
                   child: Column(
                     children: [
-                      Text('صورة ${i + 1}', style: const TextStyle(fontSize: 11)),
+                      Text('${LanguageService.t('photo_image')} ${i + 1}', style: const TextStyle(fontSize: 11)),
                       const SizedBox(height: 4),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
@@ -312,7 +316,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                 ),
               ),
             ),
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('إغلاق')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(LanguageService.t('photo_close'))),
           ],
         ),
       ),
@@ -323,11 +327,11 @@ class _PhotoScreenState extends State<PhotoScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('حذف الصورة؟'),
-        content: const Text('هل تريد حذف هذه الصورة؟'),
+        title: Text(LanguageService.t('photo_delete_title')),
+        content: Text(LanguageService.t('photo_delete_confirm')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(LanguageService.t('cancel'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(LanguageService.t('delete'))),
         ],
       ),
     );

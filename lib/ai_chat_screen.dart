@@ -130,13 +130,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
       final err = jsonDecode(response.body);
       final errMsg = err['error']?['message'] ?? 'HTTP ${response.statusCode}';
       setState(() {
-        _messages.add({'role': 'model', 'text': 'خطأ: $errMsg'});
+        _messages.add({'role': 'model', 'text': '${LanguageService.t('ai_error')}$errMsg'});
         _loading = false;
       });
       _scrollToBottom();
     } catch (e) {
       setState(() {
-        _messages.add({'role': 'model', 'text': 'خطأ اتصال: ${e.toString()}'});
+        _messages.add({'role': 'model', 'text': '${LanguageService.t('ai_connection_error')}${e.toString()}'});
         _loading = false;
       });
       _scrollToBottom();
