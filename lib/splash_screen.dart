@@ -23,6 +23,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), _navigate);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _navigate,
