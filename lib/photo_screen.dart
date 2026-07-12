@@ -209,6 +209,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   Widget _buildFootPhoto(String title, String foot, Color color, List<Map<String, String>> photos) {
     final latest = photos.isNotEmpty ? photos.first : <String, String>{};
     final data = latest['data'] ?? '';
+    final url = latest['url'] ?? '';
     final analysis = latest['analysis'] ?? '';
     final risk = latest['risk'] ?? '';
     final id = latest['id'] ?? '';
@@ -254,7 +255,9 @@ class _PhotoScreenState extends State<PhotoScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.memory(base64Decode(data), fit: BoxFit.cover),
+                        child: data.isNotEmpty
+                            ? Image.memory(base64Decode(data), fit: BoxFit.cover)
+                            : Image.network(url, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 48)),
                       ),
                       Positioned(
                         top: 8, left: 8,
@@ -318,7 +321,13 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       const SizedBox(height: 4),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.memory(base64Decode(photos[i]['data'] ?? ''), height: 220, width: 160, fit: BoxFit.cover),
+                        child: Builder(builder: (_) {
+                          final data = photos[i]['data'] ?? '';
+                          final url = photos[i]['url'] ?? '';
+                          return data.isNotEmpty
+                              ? Image.memory(base64Decode(data), height: 220, width: 160, fit: BoxFit.cover)
+                              : Image.network(url, height: 220, width: 160, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 40));
+                        }),
                       ),
                       if ((photos[i]['analysis'] ?? '').isNotEmpty)
                         Padding(

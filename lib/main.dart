@@ -9,6 +9,7 @@ import 'language_service.dart';
 import 'notification_service.dart';
 import 'theme_service.dart';
 import 'providers/app_providers.dart';
+import 'analytics_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,9 @@ void main() async {
   themeModeNotifier.value = darkMode ? ThemeMode.dark : ThemeMode.light;
   try {
     await NotificationService.init();
+  } catch (_) {}
+  try {
+    await AnalyticsService.init();
   } catch (_) {}
   runApp(
     ProviderScope(

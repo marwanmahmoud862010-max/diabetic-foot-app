@@ -1,16 +1,18 @@
-import 'dart:convert';
+import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class StorageService {
+  static final FirebaseStorage _storage = FirebaseStorage.instance;
   static final Map<String, String> _analysisStore = {};
-
-  // ===== Photo methods (cross-platform base64) =====
 
   static Future<void> savePhoto(String foot, List<int> bytes, {String? existingId}) async {
     final prefs = await SharedPreferences.getInstance();
     final id = existingId ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final base64Str = base64Encode(bytes);
-    await prefs.setString('photo_data_$id', base64Str);
+    final ref = _storage.ref('photos/$foot/$id.jpg');
+    await ref.putData(Uint8List.fromList(bytes));
+    final url = await ref.getDownloadURL();
+    await prefs.setString('photo_url_$id', url);
     if (existingId == null) {
       final key = 'photos_$foot';
       final list = prefs.getStringList(key) ?? [];
@@ -25,11 +27,12 @@ class StorageService {
     final ids = prefs.getStringList(key) ?? [];
     final list = <Map<String, String>>[];
     for (final id in ids) {
+      final url = prefs.getString('photo_url_$id') ?? '';
       final data = prefs.getString('photo_data_$id') ?? '';
       final date = prefs.getString('photo_date_$id') ?? '';
       final analysis = _analysisStore[id] ?? (prefs.getString('photo_analysis_$id') ?? '');
       final risk = prefs.getString('photo_risk_$id') ?? '';
-      list.add({'id': id, 'data': data, 'date': date, 'analysis': analysis, 'risk': risk});
+      list.add({'id': id, 'url': url, 'data': data, 'date': date, 'analysis': analysis, 'risk': risk});
     }
     return list.reversed.toList();
   }
@@ -55,6 +58,14 @@ class StorageService {
         break;
       }
     }
+    final url = prefs.getString('photo_url_$id');
+    if (url != null && url.isNotEmpty) {
+      try {
+        final ref = _storage.refFromURL(url);
+        await ref.delete();
+      } catch (_) {}
+    }
+    await prefs.remove('photo_url_$id');
     await prefs.remove('photo_data_$id');
     await prefs.remove('photo_analysis_$id');
     await prefs.remove('photo_risk_$id');
@@ -69,8 +80,6 @@ class StorageService {
     all.sort((a, b) => (b['date'] ?? '').compareTo(a['date'] ?? ''));
     return all;
   }
-
-  // ===== Existing history methods =====
 
   static Future<void> _addToHistory(String type, String result) async {
     final prefs = await SharedPreferences.getInstance();

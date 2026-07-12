@@ -16,6 +16,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final ageController = TextEditingController();
   final diabetesController = TextEditingController();
@@ -111,8 +112,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(24),
           children: [
             Center(
               child: GestureDetector(
@@ -221,6 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -231,9 +235,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
-        TextField(
+        TextFormField(
           controller: controller,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+          validator: (v) {
+            if (v == null || v.trim().isEmpty) return LanguageService.t('enter_name_error');
+            if (isNumber && int.tryParse(v.trim()) == null) return '${LanguageService.t('enter_name_error')} (${LanguageService.t('number_only')})';
+            return null;
+          },
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(icon, color: Colors.teal),
@@ -254,12 +263,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _save() async {
-    if (nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(LanguageService.t('enter_name_error'))),
-      );
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('phone', phoneController.text);
     await prefs.setString('name', nameController.text);
