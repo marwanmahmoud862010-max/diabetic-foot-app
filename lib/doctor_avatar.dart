@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'language_service.dart';
 
 class DoctorAvatar extends StatelessWidget {
   final double size;
@@ -47,7 +48,7 @@ class DoctorAvatar extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          label ?? 'Dr.',
+          label ?? LanguageService.t('doctor_label'),
           style: TextStyle(
             fontSize: 10,
             color: Colors.grey.shade600,

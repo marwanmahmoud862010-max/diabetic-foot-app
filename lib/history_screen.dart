@@ -123,7 +123,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     key: ValueKey('${item['date']}_$index'),
                     direction: DismissDirection.endToStart,
                     background: Container(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       padding: const EdgeInsets.only(right: 20),
                       decoration: BoxDecoration(
                         color: Colors.red,

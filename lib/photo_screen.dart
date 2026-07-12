@@ -141,7 +141,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
         foregroundColor: Colors.white,
       ),
       body: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : Stack(
