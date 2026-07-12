@@ -12,7 +12,11 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _navigating = false;
+
   Future<void> _navigate() async {
+    if (_navigating) return;
+    _navigating = true;
     final prefs = await SharedPreferences.getInstance();
     final loggedIn = prefs.getBool('is_logged_in') ?? false;
     if (!mounted) return;

@@ -118,7 +118,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 itemCount: history.length,
                 itemBuilder: (context, index) {
                   final item = history[index];
-                  final isGood = _isGood(item['result']!);
+                  final isGood = _isGood(item['result'] ?? '');
+                  final d = item['date'] ?? '';
                   return Dismissible(
                     key: ValueKey('${item['date']}_$index'),
                     direction: DismissDirection.endToStart,
@@ -159,14 +160,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _typeLabel(item['type']!),
+                                  _typeLabel(item['type'] ?? ''),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                   ),
                                 ),
                                 Text(
-                                  _resultLabel(item['result']!),
+                                  _resultLabel(item['result'] ?? ''),
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: isGood
@@ -178,9 +179,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ),
                           Text(
-                            item['date']!.length >= 10
-                                ? item['date']!.substring(0, 10)
-                                : item['date']!,
+                            d.length >= 10 ? d.substring(0, 10) : d,
                             style: const TextStyle(
                                 fontSize: 11, color: Colors.grey),
                           ),

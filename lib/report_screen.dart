@@ -175,9 +175,9 @@ class _ReportScreenState extends State<ReportScreen> {
                       : item['type'] == 'temperature'
                           ? LanguageService.t('temperature')
                           : item['type'];
-              final resultText = item['result'].startsWith('risk_')
+              final resultText = (item['result'] as String? ?? '').startsWith('risk_')
                   ? LanguageService.t(item['result'])
-                  : item['result'].startsWith('checkup_') || item['result'].startsWith('touch_') || item['result'].startsWith('temp_')
+                  : (item['result'] as String? ?? '').startsWith('checkup_') || (item['result'] as String? ?? '').startsWith('touch_') || (item['result'] as String? ?? '').startsWith('temp_')
                       ? LanguageService.t(item['result'])
                       : item['result'];
               return pw.Padding(
@@ -281,9 +281,9 @@ class _ReportScreenState extends State<ReportScreen> {
               : item['type'] == 'temperature'
                   ? LanguageService.t('temperature')
                   : item['type'];
-      final resultText = item['result'].startsWith('risk_')
+      final resultText = (item['result'] as String? ?? '').startsWith('risk_')
           ? LanguageService.t(item['result'])
-          : item['result'].startsWith('checkup_') || item['result'].startsWith('touch_') || item['result'].startsWith('temp_')
+          : (item['result'] as String? ?? '').startsWith('checkup_') || (item['result'] as String? ?? '').startsWith('touch_') || (item['result'] as String? ?? '').startsWith('temp_')
               ? LanguageService.t(item['result'])
               : item['result'];
       return '$date | $type | $resultText';
@@ -336,10 +336,14 @@ class _ReportScreenState extends State<ReportScreen> {
 
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(LanguageService.t('whatsapp_sent'))),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(LanguageService.t('whatsapp_not_found'))),
       );
     }
   }
@@ -492,9 +496,9 @@ class _ReportScreenState extends State<ReportScreen> {
                                   : item['type'] == 'temperature'
                                       ? LanguageService.t('temperature')
                                       : item['type'];
-                          final resultText = item['result'].startsWith('risk_')
+                          final resultText = (item['result'] as String? ?? '').startsWith('risk_')
                               ? LanguageService.t(item['result'])
-                              : item['result'].startsWith('checkup_') || item['result'].startsWith('touch_') || item['result'].startsWith('temp_')
+                              : (item['result'] as String? ?? '').startsWith('checkup_') || (item['result'] as String? ?? '').startsWith('touch_') || (item['result'] as String? ?? '').startsWith('temp_')
                                   ? LanguageService.t(item['result'])
                                   : item['result'];
                           return Padding(

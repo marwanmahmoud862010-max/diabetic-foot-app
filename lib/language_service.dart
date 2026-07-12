@@ -249,6 +249,7 @@ class LanguageService {
     'doctor_phone_hint': {'ar': 'مثال: 201234567890+', 'en': 'e.g. +201234567890', 'fr': 'Ex: +201234567890'},
     'send_whatsapp': {'ar': 'إرسال للدكتور عبر واتساب', 'en': 'Send to Doctor via WhatsApp', 'fr': 'Envoyer au médecin via WhatsApp'},
     'whatsapp_sent': {'ar': 'تم فتح واتساب', 'en': 'WhatsApp opened', 'fr': 'WhatsApp ouvert'},
+    'whatsapp_not_found': {'ar': 'واتساب غير مثبت على الجهاز', 'en': 'WhatsApp is not installed', 'fr': 'WhatsApp n\'est pas installé'},
     'no_doctor_number': {'ar': 'لا يوجد رقم دكتور. أضف رقم الدكتور أولاً من تعديل البيانات.', 'en': 'No doctor number. Add a doctor\'s number in Edit Profile first.', 'fr': 'Pas de numéro de médecin. Ajoutez d\'abord un numéro dans Modifier le profil.'},
     'doctor_contact': {'ar': 'بيانات التواصل مع الدكتور', 'en': 'Doctor Contact', 'fr': 'Contact du médecin'},
     'doctor_label': {'ar': 'دكتور', 'en': 'Dr.', 'fr': 'Dr.'},

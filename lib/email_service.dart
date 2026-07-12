@@ -17,6 +17,9 @@ class EmailService {
       _publicKey.isNotEmpty && _serviceId.isNotEmpty && _templateId.isNotEmpty;
 
   static Future<void> sendOtpEmail(String email, String otp) async {
+    if (!isConfigured) {
+      throw Exception('EmailJS is not configured. Check .env file.');
+    }
     final uri = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
     final body = {
       'service_id': _serviceId,

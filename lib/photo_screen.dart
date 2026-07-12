@@ -60,6 +60,13 @@ class _PhotoScreenState extends State<PhotoScreen> {
     if (!mounted) return;
     setState(() => _analyzing = true);
     try {
+      if (ApiConfig.groqApiKey.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('network_error'))));
+        }
+        setState(() => _analyzing = false);
+        return;
+      }
       final base64Image = base64Encode(bytes);
       final response = await http.post(
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
@@ -88,8 +95,9 @@ class _PhotoScreenState extends State<PhotoScreen> {
       if (!mounted) return;
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final analysis = data['choices'][0]['message']['content'] as String;
-        final isRisk = analysis.startsWith('RISK') || analysis.startsWith('risk');
+        final raw = data['choices']?[0]?['message']?['content'] as String? ?? '';
+        final isRisk = raw.startsWith('RISK') || raw.startsWith('risk');
+        final analysis = isRisk ? raw.substring(4).trim() : raw;
         final photos = foot == 'right' ? _rightPhotos : _leftPhotos;
         if (photos.isNotEmpty) {
           await StorageService.saveAnalysis(photos.first['id'] ?? '', analysis, isRisk ? 'high' : 'low');
