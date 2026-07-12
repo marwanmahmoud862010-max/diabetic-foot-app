@@ -5,6 +5,7 @@ import 'api_config.dart';
 import 'language_service.dart';
 import 'doctor_avatar.dart';
 import 'widgets/dark_mode_toggle.dart';
+import 'connectivity_service.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -64,6 +65,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty || _loading) return;
+    if (!await ConnectivityService.check()) {
+      setState(() => _messages.add({'role': 'model', 'text': LanguageService.t('offline_desc')}));
+      return;
+    }
     _controller.clear();
 
     setState(() {

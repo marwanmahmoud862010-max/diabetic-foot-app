@@ -5,6 +5,7 @@ import 'home_screen.dart';
 import 'forgot_password_screen.dart';
 import 'route_transition.dart';
 import 'language_service.dart';
+import 'connectivity_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,6 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     setState(() => _loading = true);
+    if (!await ConnectivityService.check()) {
+      setState(() => _loading = false);
+      _showSnack(LanguageService.t('offline_desc'));
+      return;
+    }
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
       await _saveAndGo(email);

@@ -51,6 +51,8 @@ class LanguageService {
     'dark_mode': {'ar': 'الوضع الليلي', 'en': 'Dark Mode', 'fr': 'Mode sombre'},
     'light_mode': {'ar': 'الوضع النهاري', 'en': 'Light Mode', 'fr': 'Mode clair'},
     'ok': {'ar': 'حسناً', 'en': 'OK', 'fr': 'OK'},
+    'offline_title': {'ar': 'لا يوجد اتصال بالإنترنت', 'en': 'No Internet Connection', 'fr': 'Pas de connexion Internet'},
+    'offline_desc': {'ar': 'برجاء التحقق من اتصال الإنترنت وحاول مرة أخرى', 'en': 'Please check your internet connection and try again', 'fr': 'Veuillez vérifier votre connexion Internet et réessayer'},
     'no_previous_checkup': {'ar': 'مفيش فحص سابق', 'en': 'No previous checkup', 'fr': 'Aucun examen précédent'},
     'touch_test': {'ar': 'اختبار اللمس', 'en': 'Touch Test', 'fr': 'Test Tactile'},
     'no_previous_test': {'ar': 'مفيش اختبار سابق', 'en': 'No previous test', 'fr': 'Aucun test précédent'},

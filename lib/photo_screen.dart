@@ -6,6 +6,7 @@ import 'storage_service.dart';
 import 'language_service.dart';
 import 'api_config.dart';
 import 'widgets/dark_mode_toggle.dart';
+import 'connectivity_service.dart';
 
 class PhotoScreen extends StatefulWidget {
   const PhotoScreen({super.key});
@@ -59,6 +60,11 @@ class _PhotoScreenState extends State<PhotoScreen> {
 
   Future<void> _analyzePhoto(List<int> bytes, String foot) async {
     if (!mounted) return;
+    if (!await ConnectivityService.check()) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('offline_desc'))));
+      setState(() => _analyzing = false);
+      return;
+    }
     setState(() => _analyzing = true);
     try {
       if (ApiConfig.groqApiKey.isEmpty) {
