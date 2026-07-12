@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'storage_service.dart';
 import 'language_service.dart';
 import 'notification_service.dart';
@@ -16,6 +17,7 @@ import 'report_screen.dart';
 import 'researches_screen.dart';
 import 'ai_chat_screen.dart';
 import 'route_transition.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -89,6 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _showLanguageSheet,
             icon: const Icon(Icons.language, color: Colors.white),
             label: const Text('', style: TextStyle(color: Colors.white)),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: LanguageService.t('logout'),
+            onPressed: _logout,
           ),
         ],
       ),
@@ -243,6 +250,14 @@ class _HomeScreenState extends State<HomeScreen> {
         child: const Icon(Icons.auto_awesome),
       ),
     );
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_logged_in', false);
+    if (!mounted) return;
+    pushReplacementPage(context, const LoginScreen());
   }
 
   Future<void> _editProfile() async {

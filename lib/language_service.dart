@@ -249,6 +249,7 @@ class LanguageService {
     'email_hint': {'ar': 'مثال: example@gmail.com', 'en': 'e.g. example@gmail.com', 'fr': 'Ex: example@gmail.com'},
     'login_button': {'ar': 'تسجيل الدخول', 'en': 'Sign In', 'fr': 'Se connecter'},
     'login_error_empty': {'ar': 'برجاء إدخال الإيميل والباسوورد', 'en': 'Please enter email and password', 'fr': 'Veuillez entrer l\'email et le mot de passe'},
+    'logout': {'ar': 'تسجيل خروج', 'en': 'Logout', 'fr': 'Déconnexion'},
     'login_wrong_password': {'ar': 'الباسوورد غلط', 'en': 'Wrong password', 'fr': 'Mot de passe incorrect'},
     'login_create_account_error': {'ar': 'خطأ في إنشاء الحساب', 'en': 'Could not create account', 'fr': 'Impossible de créer le compte'},
     'general_error': {'ar': 'خطأ', 'en': 'Error', 'fr': 'Erreur'},
