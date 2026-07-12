@@ -35,7 +35,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _showSnack('${LanguageService.t('forgot_otp_sent')} $email');
     } catch (e) {
       setState(() => _loading = false);
-      _showSnack(e.toString());
+      _showSnack(LanguageService.t('network_error'));
     }
   }
 

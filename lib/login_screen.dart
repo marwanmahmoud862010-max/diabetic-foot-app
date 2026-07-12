@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       setState(() => _loading = false);
-      _showSnack(e.toString());
+      _showSnack(LanguageService.t('network_error'));
     }
   }
 

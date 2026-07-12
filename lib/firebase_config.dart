@@ -1,8 +1,10 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class FirebaseConfig {
-  static const String apiKey = 'AIzaSyDCQ_aXn15_DDKzMq6D7yGVWLAyknM5ajI';
-  static const String authDomain = 'diabetic-foot-app-4556d.firebaseapp.com';
-  static const String projectId = 'diabetic-foot-app-4556d';
-  static const String storageBucket = 'diabetic-foot-app-4556d.firebasestorage.app';
-  static const String messagingSenderId = '1003640769680';
-  static const String appId = '1:1003640769680:web:036ec94b01fa35abecdc15';
+  static String get apiKey => dotenv.env['FIREBASE_API_KEY'] ?? '';
+  static String get authDomain => dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? '';
+  static String get projectId => dotenv.env['FIREBASE_PROJECT_ID'] ?? '';
+  static String get storageBucket => dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '';
+  static String get messagingSenderId => dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '';
+  static String get appId => dotenv.env['FIREBASE_APP_ID'] ?? '';
 }

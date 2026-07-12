@@ -91,7 +91,11 @@ class _PhotoScreenState extends State<PhotoScreen> {
           await StorageService.saveAnalysis(photos.first['id'] ?? '', analysis, isRisk ? 'high' : 'low');
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('network_error'))));
+      }
+    }
     if (!mounted) return;
     setState(() => _analyzing = false);
   }

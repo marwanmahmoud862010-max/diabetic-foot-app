@@ -1,11 +1,12 @@
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class EmailService {
-  static const String _publicKey = 'rcNuIEFYESgNfV2XH';
-  static const String _serviceId = 'service_s5zsztd';
-  static const String _templateId = 'template_4a9ajg5';
+  static String get _publicKey => dotenv.env['EMAILJS_PUBLIC_KEY'] ?? '';
+  static String get _serviceId => dotenv.env['EMAILJS_SERVICE_ID'] ?? '';
+  static String get _templateId => dotenv.env['EMAILJS_TEMPLATE_ID'] ?? '';
 
   static String generateOtp() {
     final rng = Random();
