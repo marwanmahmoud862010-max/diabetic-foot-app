@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'language_service.dart';
 import 'widgets/dark_mode_toggle.dart';
 
@@ -29,44 +26,59 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
     super.dispose();
   }
 
-  pw.Document _generatePdf(Map<String, String> research) {
-    final pdf = pw.Document();
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (ctx) => [
-          pw.Header(text: research['institution'] ?? '', level: 0),
-          pw.Paragraph(
-            text: '${LanguageService.t('research_date')}: ${research['date'] ?? ''}',
-            style: pw.TextStyle(fontSize: 12, color: PdfColors.grey),
-          ),
-          pw.SizedBox(height: 16),
-          pw.Paragraph(
-            text: research['content'] ?? '',
-            style: pw.TextStyle(fontSize: 11, lineSpacing: 1.5),
-          ),
-        ],
-      ),
-    );
-    return pdf;
-  }
+  double _fontSize = 16;
 
-  void _openPdf(int index) {
+  void _openDetail(int index) {
     final research = _researches[index];
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(
-            title: Text(research['institution'] ?? '', style: const TextStyle(fontSize: 14)),
-          ),
-          body: PdfPreview(
-            build: (format) => _generatePdf(research).save(),
-            pdfFileName: 'research_${index + 1}',
-            pdfPreviewPageDecoration: const BoxDecoration(),
-          ),
-        ),
+        builder: (_) => StatefulBuilder(builder: (context, setInnerState) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(research['institution'] ?? '', style: const TextStyle(fontSize: 14)),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.text_decrease),
+                  onPressed: () => setInnerState(() => _fontSize = (_fontSize - 2).clamp(10, 36)),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.text_increase),
+                  onPressed: () => setInnerState(() => _fontSize = (_fontSize + 2).clamp(10, 36)),
+                ),
+              ],
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        research['date'] ?? '',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SelectableText(
+                    research['content'] ?? '',
+                    style: TextStyle(fontSize: _fontSize, height: 1.6),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -99,7 +111,7 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => _openPdf(index),
+          onTap: () => _openDetail(index),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(

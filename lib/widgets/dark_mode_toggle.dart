@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme_service.dart';
+import '../language_service.dart';
 
 class DarkModeToggle extends StatelessWidget {
   const DarkModeToggle({super.key});
@@ -12,7 +13,7 @@ class DarkModeToggle extends StatelessWidget {
         final isDark = mode == ThemeMode.dark;
         return IconButton(
           icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-          tooltip: isDark ? 'Light Mode' : 'Dark Mode',
+          tooltip: LanguageService.t(isDark ? 'light_mode' : 'dark_mode'),
           onPressed: ThemeService.toggle,
         );
       },

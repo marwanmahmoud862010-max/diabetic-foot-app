@@ -76,6 +76,17 @@ class MyApp extends StatelessWidget {
                   backgroundColor: Colors.teal.shade800,
                   foregroundColor: Colors.white,
                 ),
+                dividerTheme: DividerThemeData(
+                  color: Colors.grey.shade600,
+                  thickness: 1,
+                ),
+                textTheme: const TextTheme(
+                  bodyLarge: TextStyle(fontWeight: FontWeight.w600),
+                  bodyMedium: TextStyle(fontWeight: FontWeight.w600),
+                  bodySmall: TextStyle(fontWeight: FontWeight.w600),
+                  labelLarge: TextStyle(fontWeight: FontWeight.w700),
+                  titleMedium: TextStyle(fontWeight: FontWeight.w700),
+                ),
               ),
               home: const SplashScreen(),
             );

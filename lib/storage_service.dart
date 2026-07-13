@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,10 +10,14 @@ class StorageService {
   static Future<void> savePhoto(String foot, List<int> bytes, {String? existingId}) async {
     final prefs = await SharedPreferences.getInstance();
     final id = existingId ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final ref = _storage.ref('photos/$foot/$id.jpg');
-    await ref.putData(Uint8List.fromList(bytes));
-    final url = await ref.getDownloadURL();
-    await prefs.setString('photo_url_$id', url);
+    final base64Str = base64Encode(bytes);
+    await prefs.setString('photo_data_$id', base64Str);
+    try {
+      final ref = _storage.ref('photos/$foot/$id.jpg');
+      await ref.putData(Uint8List.fromList(bytes));
+      final url = await ref.getDownloadURL();
+      await prefs.setString('photo_url_$id', url);
+    } catch (_) {}
     if (existingId == null) {
       final key = 'photos_$foot';
       final list = prefs.getStringList(key) ?? [];

@@ -332,17 +332,30 @@ class _ReportScreenState extends State<ReportScreen> {
       'StepGuard',
     ].join('\n');
 
-    final phone = doctorPhone.replaceAll(RegExp(r'[^0-9+]'), '');
-    final uri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
+    final phone = doctorPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    final encoded = Uri.encodeComponent(message);
+    final uris = [
+      Uri.parse('whatsapp://send?phone=$phone&text=$encoded'),
+      Uri.parse('https://api.whatsapp.com/send?phone=$phone&text=$encoded'),
+    ];
 
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!mounted) return;
+    bool opened = false;
+    for (final uri in uris) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        opened = true;
+        break;
+      } catch (_) {
+        continue;
+      }
+    }
+
+    if (!mounted) return;
+    if (opened) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(LanguageService.t('whatsapp_sent'))),
       );
     } else {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(LanguageService.t('whatsapp_not_found'))),
       );

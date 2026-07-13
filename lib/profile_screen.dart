@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home_screen.dart';
 import 'language_service.dart';
-import 'route_transition.dart';
 import 'widgets/dark_mode_toggle.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -277,11 +275,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await prefs.setBool('profile_done', true);
 
     if (mounted) {
-      if (_isEditing) {
-        Navigator.pop(context);
-      } else {
-        pushReplacementPage(context, const HomeScreen());
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(LanguageService.t('save_success'))),
+      );
     }
   }
 }

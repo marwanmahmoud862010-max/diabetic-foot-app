@@ -43,10 +43,10 @@ class _SplashScreenState extends State<SplashScreen> {
     return GestureDetector(
       onTap: _navigate,
       child: Scaffold(
-        body: Center(
+        body: SizedBox.expand(
           child: Image.asset(
             'assets/app_design.png',
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
           ),
         ),
       ),

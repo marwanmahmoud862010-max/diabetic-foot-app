@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -18,8 +19,9 @@ class PhotoScreen extends StatefulWidget {
 class _PhotoScreenState extends State<PhotoScreen> {
   List<Map<String, String>> _rightPhotos = [];
   List<Map<String, String>> _leftPhotos = [];
+  Uint8List? _rightLastBytes;
+  Uint8List? _leftLastBytes;
   bool _loading = true;
-  bool _analyzing = false;
 
   @override
   void initState() {
@@ -34,6 +36,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
     setState(() {
       _rightPhotos = right;
       _leftPhotos = left;
+      _rightLastBytes = right.isNotEmpty && right.first['data']!.isNotEmpty
+          ? base64Decode(right.first['data']!)
+          : null;
+      _leftLastBytes = left.isNotEmpty && left.first['data']!.isNotEmpty
+          ? base64Decode(left.first['data']!)
+          : null;
       _loading = false;
     });
   }
@@ -44,8 +52,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
     if (picked == null || !mounted) return;
     final bytes = await picked.readAsBytes();
     await StorageService.savePhoto(foot, bytes);
-    await _analyzePhoto(bytes, foot);
-    await _loadPhotos();
+    if (foot == 'right') {
+      _rightLastBytes = Uint8List.fromList(bytes);
+    } else {
+      _leftLastBytes = Uint8List.fromList(bytes);
+    }
+    _loadPhotos();
   }
 
   Future<void> _pickFromGallery(String foot) async {
@@ -54,26 +66,169 @@ class _PhotoScreenState extends State<PhotoScreen> {
     if (picked == null || !mounted) return;
     final bytes = await picked.readAsBytes();
     await StorageService.savePhoto(foot, bytes);
-    await _analyzePhoto(bytes, foot);
-    await _loadPhotos();
+    if (foot == 'right') {
+      _rightLastBytes = Uint8List.fromList(bytes);
+    } else {
+      _leftLastBytes = Uint8List.fromList(bytes);
+    }
+    _loadPhotos();
   }
 
-  Future<void> _analyzePhoto(List<int> bytes, String foot) async {
-    if (!mounted) return;
-    if (!await ConnectivityService.check()) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('offline_desc'))));
-      setState(() => _analyzing = false);
+  Future<void> _analyzeLatest() async {
+    final rightBytes = _rightLastBytes;
+    final leftBytes = _leftLastBytes;
+    if (rightBytes == null && leftBytes == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('photo_no_photo'))));
+      }
       return;
     }
-    setState(() => _analyzing = true);
-    try {
-      if (ApiConfig.groqApiKey.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('network_error'))));
-        }
-        setState(() => _analyzing = false);
-        return;
+    if (!await ConnectivityService.check()) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('offline_desc'))));
       }
+      return;
+    }
+
+    String? rightResultText;
+    bool? rightIsRisk;
+
+    String? leftResultText;
+    bool? leftIsRisk;
+
+    String statusText = '';
+    double progress = 0;
+    bool rightDone = false;
+    bool leftDone = false;
+
+    void Function(void Function())? dlgUpdate;
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: StatefulBuilder(
+            builder: (ctx, setDlgState) {
+              dlgUpdate = setDlgState;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!rightDone || !leftDone) ...[
+                      Text(statusText, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: 110, height: 110,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CircularProgressIndicator(value: progress / 100, strokeWidth: 6),
+                            Text('${progress.toInt()}%', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                    ],
+                    if (rightResultText != null)
+                      _buildResultBox(
+                        LanguageService.t('photo_right'),
+                        rightResultText!,
+                        rightIsRisk!,
+                      ),
+                    if (rightResultText != null)
+                      const SizedBox(height: 12),
+                    if (leftResultText != null)
+                      _buildResultBox(
+                        LanguageService.t('photo_left'),
+                        leftResultText!,
+                        leftIsRisk!,
+                      ),
+                    if (rightDone && leftDone)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () { Navigator.pop(ctx); _loadPhotos(); },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: Text(LanguageService.t('ok'), style: const TextStyle(fontSize: 16)),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    // Analyze right foot
+    if (rightBytes != null) {
+      dlgUpdate?.call(() {
+        statusText = LanguageService.t('photo_analyzing_right');
+        progress = 10;
+      });
+      final r = await _runSingleAnalysis(rightBytes);
+      if (r != null && mounted) {
+        final photos = _rightPhotos;
+        if (photos.isNotEmpty) {
+          await StorageService.saveAnalysis(photos.first['id'] ?? '', r.analysis, r.isRisk ? 'high' : 'low');
+        }
+        dlgUpdate?.call(() {
+          rightResultText = r.analysis;
+          rightIsRisk = r.isRisk;
+          rightDone = true;
+          progress = 50;
+        });
+      }
+    }
+
+    // Analyze left foot
+    if (leftBytes != null) {
+      dlgUpdate?.call(() {
+        statusText = LanguageService.t('photo_analyzing_left');
+        progress = 55;
+      });
+      final r = await _runSingleAnalysis(leftBytes);
+      if (r != null && mounted) {
+        final photos = _leftPhotos;
+        if (photos.isNotEmpty) {
+          await StorageService.saveAnalysis(photos.first['id'] ?? '', r.analysis, r.isRisk ? 'high' : 'low');
+        }
+        dlgUpdate?.call(() {
+          leftResultText = r.analysis;
+          leftIsRisk = r.isRisk;
+          leftDone = true;
+          progress = 100;
+        });
+      }
+    }
+
+    if (mounted && rightDone && leftDone) {
+      dlgUpdate?.call(() {});
+    }
+  }
+
+  Future<({bool isRisk, String analysis})?> _runSingleAnalysis(List<int> bytes) async {
+    if (ApiConfig.groqApiKey.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('network_error'))));
+      }
+      return null;
+    }
+    try {
       final base64Image = base64Encode(bytes);
       final response = await http.post(
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
@@ -87,11 +242,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
             {
               'role': 'user',
               'content': [
-                {'type': 'text', 'text': LanguageService.isRTL
-                    ? 'حلل صورة القدم هذه. أخبرني إذا كان هناك: احمرار، تورم، جروح، كالو، تغير في اللون، أو أي شيء غير طبيعي. ابدأ ردك بـ RISK لو في مشكلة أو SAFE لو القدم سليمة. رد بجملة واحدة قصيرة.'
-                    : LanguageService.currentLang.value == 'fr'
-                        ? 'Analysez cette photo de pied. Dites-moi s\'il y a: rougeur, gonflement, plaies, callosités, décoloration ou anomalie. Commencez votre réponse par RISK s\'il y a un problème ou SAFE si le pied est sain. Répondez en une phrase courte.'
-                        : 'Analyze this foot photo. Tell me if there is: redness, swelling, wounds, callus, discoloration, or any abnormality. Start your reply with RISK if there is a problem or SAFE if the foot is healthy. Keep response to one short sentence.'},
+                {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
                 {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
               ],
             },
@@ -99,24 +250,56 @@ class _PhotoScreenState extends State<PhotoScreen> {
           'max_tokens': 200,
         }),
       );
-      if (!mounted) return;
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final raw = data['choices']?[0]?['message']?['content'] as String? ?? '';
-        final isRisk = raw.startsWith('RISK') || raw.startsWith('risk');
-        final analysis = isRisk ? raw.substring(4).trim() : raw;
-        final photos = foot == 'right' ? _rightPhotos : _leftPhotos;
-        if (photos.isNotEmpty) {
-          await StorageService.saveAnalysis(photos.first['id'] ?? '', analysis, isRisk ? 'high' : 'low');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('network_error'))));
-      }
+      if (!mounted || response.statusCode != 200) return null;
+      final data = jsonDecode(response.body);
+      final raw = data['choices']?[0]?['message']?['content'] as String? ?? '';
+      final isRisk = raw.startsWith('RISK') || raw.startsWith('risk');
+      final analysis = isRisk ? raw.substring(4).trim() : raw;
+      return (isRisk: isRisk, analysis: analysis);
+    } catch (_) {
+      return null;
     }
-    if (!mounted) return;
-    setState(() => _analyzing = false);
+  }
+
+  Widget _buildResultBox(String footLabel, String analysis, bool isRisk) {
+    final bgColor = isRisk ? Colors.red.shade50 : Colors.green.shade50;
+    final borderColor = isRisk ? Colors.red : Colors.green;
+    final icon = isRisk ? Icons.warning_rounded : Icons.check_circle_rounded;
+    final iconColor = isRisk ? Colors.red : Colors.green;
+    final label = isRisk ? LanguageService.t('photo_risk_high') : LanguageService.t('photo_risk_low');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 22),
+              const SizedBox(width: 8),
+              Text(footLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isRisk ? Colors.red : Colors.green,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(analysis, style: TextStyle(fontSize: 13, color: Colors.grey.shade800, height: 1.4)),
+        ],
+      ),
+    );
   }
 
   void _showPicker(String foot, String title) {
@@ -177,6 +360,21 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       const SizedBox(height: 16),
                       _buildFootPhoto(LanguageService.t('photo_left'), 'left', Colors.blue, _leftPhotos),
                       const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          onPressed: _analyzeLatest,
+                          icon: const Icon(Icons.auto_awesome),
+                          label: Text(LanguageService.t('photo_analyze_ai')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Text(LanguageService.t('photo_look_for'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
                       _buildWarning(LanguageService.t('photo_warning1')),
@@ -186,23 +384,9 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       _buildWarning(LanguageService.t('photo_warning5')),
                     ],
                   ),
-                  if (_analyzing)
-                    Container(
-                      color: Colors.black54,
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const CircularProgressIndicator(color: Colors.white),
-                            const SizedBox(height: 12),
-                            Text(LanguageService.t('photo_analyzing'), style: const TextStyle(color: Colors.white, fontSize: 16)),
-                          ],
-                        ),
-                      ),
-                    ),
                   ],
-              ),
-      ),
+                ),
+            ),
     );
   }
 
