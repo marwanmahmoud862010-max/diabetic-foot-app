@@ -46,11 +46,9 @@ class NotificationService {
 
   static Future<void> _rescheduleIfEnabled() async {
     if (kIsWeb) return;
-    try {
-      if (await isEnabled()) {
-        await _scheduleAll();
-      }
-    } catch (_) {}
+    if (await isEnabled()) {
+      await _scheduleAll();
+    }
   }
 
   static Future<bool> isEnabled() async {
@@ -85,12 +83,13 @@ class NotificationService {
       LanguageService.t('reminder_afternoon'),
       LanguageService.t('reminder_evening'),
     ];
+    final ids = [_morningId, _afternoonId, _eveningId];
     for (int i = 0; i < 3; i++) {
       var scheduled = tz.TZDateTime(location, now.year, now.month, now.day, targetHours[i]);
       if (scheduled.isBefore(tz.TZDateTime.from(now, location))) {
         scheduled = scheduled.add(const Duration(days: 1));
       }
-      await _scheduleOne(i, scheduled, bodies[i]);
+      await _scheduleOne(ids[i], scheduled, bodies[i]);
     }
   }
 
