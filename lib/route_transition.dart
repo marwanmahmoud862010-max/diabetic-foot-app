@@ -47,7 +47,6 @@ class _BrandedTransition extends StatelessWidget {
 
         return Stack(
           children: [
-            Container(),
             Transform.translate(
               offset: Offset(isRtl ? -pageSlide : pageSlide, 0),
               child: Opacity(

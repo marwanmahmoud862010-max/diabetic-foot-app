@@ -313,6 +313,7 @@ class LanguageService {
     'forgot_otp_empty': {'ar': 'برجاء إدخال الكود', 'en': 'Please enter the code', 'fr': 'Veuillez entrer le code'},
     'forgot_otp_wrong': {'ar': 'الكود غير صحيح', 'en': 'Wrong code', 'fr': 'Code incorrect'},
     'forgot_otp_sent': {'ar': 'تم إرسال الكود إلى', 'en': 'Code sent to', 'fr': 'Code envoyé à'},
+    'forgot_password_email_sent': {'ar': 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', 'en': 'Password reset link sent to your email', 'fr': 'Lien de réinitialisation du mot de passe envoyé à votre email'},
     'otp_label': {'ar': 'OTP', 'en': 'OTP', 'fr': 'OTP'},
     'otp_hint': {'ar': 'أدخل الكود', 'en': 'Enter code', 'fr': 'Entrez le code'},
     'setup_profile_later': {'ar': 'تخطي الآن', 'en': 'Skip for now', 'fr': 'Passer pour le moment'},

@@ -237,7 +237,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'llama-3.2-11b-vision-preview',
+          'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
           'messages': [
             {
               'role': 'user',
@@ -393,7 +393,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
   Widget _buildFootPhoto(String title, String foot, Color color, List<Map<String, String>> photos) {
     final latest = photos.isNotEmpty ? photos.first : <String, String>{};
     final data = latest['data'] ?? '';
-    final url = latest['url'] ?? '';
     final analysis = latest['analysis'] ?? '';
     final risk = latest['risk'] ?? '';
     final id = latest['id'] ?? '';
@@ -439,9 +438,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: data.isNotEmpty
-                            ? Image.memory(base64Decode(data), fit: BoxFit.cover)
-                            : Image.network(url, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 48)),
+                        child: Image.memory(base64Decode(data), fit: BoxFit.cover),
                       ),
                       Positioned(
                         top: 8, left: 8,

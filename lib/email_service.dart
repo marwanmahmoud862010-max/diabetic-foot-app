@@ -9,7 +9,7 @@ class EmailService {
   static String get _templateId => dotenv.env['EMAILJS_TEMPLATE_ID'] ?? '';
 
   static String generateOtp() {
-    final rng = Random();
+    final rng = Random.secure();
     return (rng.nextInt(900000) + 100000).toString();
   }
 

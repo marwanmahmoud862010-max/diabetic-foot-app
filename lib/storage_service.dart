@@ -5,7 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class StorageService {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
-  static final Map<String, String> _analysisStore = {};
+  static const int _maxHistory = 500;
 
   static Future<void> savePhoto(String foot, List<int> bytes, {String? existingId}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -17,7 +17,9 @@ class StorageService {
       await ref.putData(Uint8List.fromList(bytes));
       final url = await ref.getDownloadURL();
       await prefs.setString('photo_url_$id', url);
-    } catch (_) {}
+    } on FirebaseException catch (_) {
+      // Firebase Storage not available; local save succeeded
+    }
     if (existingId == null) {
       final key = 'photos_$foot';
       final list = prefs.getStringList(key) ?? [];
@@ -35,7 +37,7 @@ class StorageService {
       final url = prefs.getString('photo_url_$id') ?? '';
       final data = prefs.getString('photo_data_$id') ?? '';
       final date = prefs.getString('photo_date_$id') ?? '';
-      final analysis = _analysisStore[id] ?? (prefs.getString('photo_analysis_$id') ?? '');
+      final analysis = prefs.getString('photo_analysis_$id') ?? '';
       final risk = prefs.getString('photo_risk_$id') ?? '';
       list.add({'id': id, 'url': url, 'data': data, 'date': date, 'analysis': analysis, 'risk': risk});
     }
@@ -44,7 +46,6 @@ class StorageService {
 
   static Future<void> saveAnalysis(String id, String analysis, String risk) async {
     final prefs = await SharedPreferences.getInstance();
-    _analysisStore[id] = analysis;
     await prefs.setString('photo_analysis_$id', analysis);
     await prefs.setString('photo_risk_$id', risk);
     final now = DateTime.now();
@@ -68,14 +69,13 @@ class StorageService {
       try {
         final ref = _storage.refFromURL(url);
         await ref.delete();
-      } catch (_) {}
+      } on FirebaseException catch (_) {}
     }
     await prefs.remove('photo_url_$id');
     await prefs.remove('photo_data_$id');
     await prefs.remove('photo_analysis_$id');
     await prefs.remove('photo_risk_$id');
     await prefs.remove('photo_date_$id');
-    _analysisStore.remove(id);
   }
 
   static Future<List<Map<String, String>>> getAllPhotos() async {
@@ -88,11 +88,14 @@ class StorageService {
 
   static Future<void> _addToHistory(String type, String result) async {
     final prefs = await SharedPreferences.getInstance();
-    final list = prefs.getStringList('full_history') ?? [];
+    var list = prefs.getStringList('full_history') ?? [];
     final now = DateTime.now();
     final date =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     list.add('$type||$result||$date');
+    if (list.length > _maxHistory) {
+      list = list.sublist(list.length - _maxHistory);
+    }
     await prefs.setStringList('full_history', list);
   }
 

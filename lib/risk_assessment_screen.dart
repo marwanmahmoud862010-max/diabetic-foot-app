@@ -57,9 +57,10 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
     return {'level': 0, 'titleKey': 'risk_level_0', 'adviceKey': 'risk_advice_0', 'color': Colors.green};
   }
 
-  void _showResult() {
+  Future<void> _showResult() async {
     final risk = _calculateRisk();
-    StorageService.saveRiskAssessment(risk['level'], risk['titleKey']);
+    await StorageService.saveRiskAssessment(risk['level'], risk['titleKey']);
+    if (!mounted) return;
 
     showDialog(
       context: context,

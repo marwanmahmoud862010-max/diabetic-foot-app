@@ -28,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     setState(() => _loading = true);
     if (!await ConnectivityService.check()) {
+      if (!mounted) return;
       setState(() => _loading = false);
       _showSnack(LanguageService.t('offline_desc'));
       return;
@@ -36,11 +37,12 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
       await _saveAndGo(email);
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+      if (e.code == 'user-not-found') {
         try {
           await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
           await _saveAndGo(email);
         } on FirebaseAuthException catch (e2) {
+          if (!mounted) return;
           setState(() => _loading = false);
           if (e2.code == 'email-already-in-use') {
             _showSnack(LanguageService.t('login_wrong_password'));
@@ -48,14 +50,13 @@ class _LoginScreenState extends State<LoginScreen> {
             _showSnack(e2.message ?? LanguageService.t('login_create_account_error'));
           }
         }
-      } else if (e.code == 'wrong-password') {
-        setState(() => _loading = false);
-        _showSnack(LanguageService.t('login_wrong_password'));
       } else {
+        if (!mounted) return;
         setState(() => _loading = false);
-        _showSnack(e.message ?? LanguageService.t('general_error'));
+        _showSnack(e.message ?? LanguageService.t('login_wrong_password'));
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() => _loading = false);
       _showSnack(LanguageService.t('network_error'));
     }
@@ -133,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
                   child: TextButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                    onPressed: () => pushPage(context, const ForgotPasswordScreen()),
                     child: Text(LanguageService.t('forgot_password'),
                         style: TextStyle(color: Colors.teal.shade700, fontSize: 13)),
                   ),

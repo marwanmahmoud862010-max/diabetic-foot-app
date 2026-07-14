@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'language_service.dart';
+import 'route_transition.dart';
 import 'widgets/dark_mode_toggle.dart';
 
 class ResearchesScreen extends StatefulWidget {
@@ -30,57 +31,54 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
 
   void _openDetail(int index) {
     final research = _researches[index];
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => StatefulBuilder(builder: (context, setInnerState) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(research['institution'] ?? '', style: const TextStyle(fontSize: 14)),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.text_decrease),
-                  onPressed: () => setInnerState(() => _fontSize = (_fontSize - 2).clamp(10, 36)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.text_increase),
-                  onPressed: () => setInnerState(() => _fontSize = (_fontSize + 2).clamp(10, 36)),
-                ),
-              ],
-            ),
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        research['date'] ?? '',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+    pushPage(context, StatefulBuilder(
+      builder: (context, setInnerState) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(research['institution'] ?? '', style: const TextStyle(fontSize: 14)),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.text_decrease),
+                onPressed: () => setInnerState(() => _fontSize = (_fontSize - 2).clamp(10, 36)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.text_increase),
+                onPressed: () => setInnerState(() => _fontSize = (_fontSize + 2).clamp(10, 36)),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      research['date'] ?? '',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  SelectableText(
-                    research['content'] ?? '',
-                    style: TextStyle(fontSize: _fontSize, height: 1.6),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 24),
+                SelectableText(
+                  research['content'] ?? '',
+                  style: TextStyle(fontSize: _fontSize, height: 1.6),
+                ),
+              ],
             ),
-          );
-        }),
-      ),
-    );
+          ),
+        );
+      },
+    ));
   }
 
   @override

@@ -35,14 +35,13 @@ class _CheckupScreenState extends State<CheckupScreen> {
 
   bool _allAnswered() => q1 != null && q2 != null && q3 != null;
 
-  void _showResult() {
-    // خطر لو: تنميل شديد أو وجع شديد أو في جرح
+  Future<void> _showResult() async {
     final bool danger =
         q1 == 'numb_severe' || q2 == 'pain_severe' || q3 == 'answer_yes';
 
-    // بنخزّن النتيجة كـ كود عشان تتترجم في الهوم والسجل
     final String resultCode = danger ? 'checkup_danger' : 'checkup_ok';
-    StorageService.saveCheckup(resultCode);
+    await StorageService.saveCheckup(resultCode);
+    if (!mounted) return;
 
     showDialog(
       context: context,
@@ -83,8 +82,9 @@ class _CheckupScreenState extends State<CheckupScreen> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // اقفل الديالوج
-                  Navigator.pop(context); // ارجع للهوم
+                  final nav = Navigator.of(context);
+                  nav.pop();
+                  nav.pop();
                 },
                 child: Text(LanguageService.t('ok_btn')),
               ),

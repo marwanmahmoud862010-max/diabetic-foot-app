@@ -34,6 +34,7 @@ class _RiskScreenState extends State<RiskScreen> {
     final checkup = await StorageService.getLastCheckup();
     final touch = await StorageService.getLastTouchTest();
     final temp = await StorageService.getLastTemperature();
+    if (!mounted) return;
 
     int score = 0;
 

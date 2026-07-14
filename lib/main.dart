@@ -14,6 +14,7 @@ import 'analytics_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
+  FirebaseConfig.validate();
   await Firebase.initializeApp(
     options: FirebaseOptions(
       apiKey: FirebaseConfig.apiKey,
@@ -25,9 +26,8 @@ void main() async {
     ),
   );
   await LanguageService.load();
+  await ThemeService.init();
   final prefs = await SharedPreferences.getInstance();
-  final darkMode = prefs.getBool('dark_mode') ?? false;
-  themeModeNotifier.value = darkMode ? ThemeMode.dark : ThemeMode.light;
   try {
     await NotificationService.init();
   } catch (_) {}

@@ -195,8 +195,9 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // اقفل الديالوج
-                  Navigator.pop(context); // ارجع للهوم
+                  final nav = Navigator.of(context);
+                  nav.pop();
+                  nav.pop();
                 },
                 child: Text(LanguageService.t('ok_btn')),
               ),

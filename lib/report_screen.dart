@@ -45,7 +45,7 @@ class _ReportScreenState extends State<ReportScreen> {
     final name = prefs.getString('name') ?? LanguageService.t('report_no_name');
     final age = prefs.getString('age') ?? LanguageService.t('report_no_age');
     final diabetesYears = prefs.getString('diabetes_years') ?? LanguageService.t('report_no_age');
-    final diabetesType = prefs.getString('diabetes_type') ?? LanguageService.t('report_no_age');
+    final diabetesType = prefs.getString('diabetes_type') ?? LanguageService.t('report_no_data');
     final phone = prefs.getString('phone') ?? '';
     final doctorPhone = prefs.getString('doctor_phone') ?? '';
 

@@ -8,6 +8,10 @@ import 'language_service.dart';
 class NotificationService {
   static final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   static const _reminderKey = 'daily_reminder_enabled';
+  static const _morningId = 0;
+  static const _afternoonId = 1;
+  static const _eveningId = 2;
+  static const _nowId = 10;
   static bool _initialized = false;
 
   static Future<void> init() async {
@@ -25,19 +29,19 @@ class NotificationService {
       iOS: iosSettings,
     );
     await flutterLocalNotificationsPlugin.initialize(initSettings);
-    await _requestPermissions();
     await _rescheduleIfEnabled();
     _initialized = true;
   }
 
-  static Future<void> _requestPermissions() async {
+  static Future<bool> requestPermissions() async {
     try {
       final android = flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
       if (android != null) {
-        await android.requestNotificationsPermission();
+        return await android.requestNotificationsPermission() ?? false;
       }
     } catch (_) {}
+    return true;
   }
 
   static Future<void> _rescheduleIfEnabled() async {
@@ -66,30 +70,24 @@ class NotificationService {
   }
 
   static Future<void> _cancelAll() async {
-    for (int i = 0; i < 3; i++) {
-      await flutterLocalNotificationsPlugin.cancel(i);
+    for (final id in [_morningId, _afternoonId, _eveningId]) {
+      await flutterLocalNotificationsPlugin.cancel(id);
     }
   }
 
   static Future<void> _scheduleAll() async {
     await _cancelAll();
     final now = DateTime.now();
-    final offset = now.timeZoneOffset;
-
-    final targetHours = [9, 15, 21]; // 9AM, 3PM, 9PM
-
+    final location = tz.local;
+    final targetHours = [9, 15, 21];
     final bodies = [
       LanguageService.t('reminder_morning'),
       LanguageService.t('reminder_afternoon'),
       LanguageService.t('reminder_evening'),
     ];
-
     for (int i = 0; i < 3; i++) {
-      final localHour = targetHours[i];
-      final utcHour = localHour - offset.inHours;
-      final utcMinute = -(offset.inMinutes.remainder(60));
-      var scheduled = tz.TZDateTime(tz.UTC, now.year, now.month, now.day, utcHour, utcMinute);
-      if (scheduled.isBefore(tz.TZDateTime.from(now, tz.UTC))) {
+      var scheduled = tz.TZDateTime(location, now.year, now.month, now.day, targetHours[i]);
+      if (scheduled.isBefore(tz.TZDateTime.from(now, location))) {
         scheduled = scheduled.add(const Duration(days: 1));
       }
       await _scheduleOne(i, scheduled, bodies[i]);
@@ -121,7 +119,7 @@ class NotificationService {
   static Future<void> showNotificationNow(String title, String body) async {
     if (kIsWeb) return;
     await flutterLocalNotificationsPlugin.show(
-      10, title, body,
+      _nowId, title, body,
       NotificationDetails(
         android: AndroidNotificationDetails(
           'general', LanguageService.t('app_name'),

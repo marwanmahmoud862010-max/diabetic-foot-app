@@ -32,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _photoData = prefs.getString('profile_photo');
       phoneController.text = prefs.getString('phone') ?? '';
@@ -62,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final picked = await picker.pickImage(source: source, maxWidth: 512, maxHeight: 512);
     if (picked != null) {
       final bytes = await picked.readAsBytes();
+      if (!mounted) return;
       setState(() => _photoData = base64Encode(bytes));
     }
   }

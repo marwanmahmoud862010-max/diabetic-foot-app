@@ -69,10 +69,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             tooltip: LanguageService.t('daily_reminder'),
             onPressed: _toggleReminder,
           ),
-          TextButton.icon(
-            onPressed: _showLanguageSheet,
+          IconButton(
             icon: const Icon(Icons.language, color: Colors.white),
-            label: const Text('', style: TextStyle(color: Colors.white)),
+            tooltip: LanguageService.t('language'),
+            onPressed: _showLanguageSheet,
           ),
           const DarkModeToggle(),
           IconButton(
@@ -280,6 +280,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _toggleReminder() async {
     try {
       final enabled = await NotificationService.isEnabled();
+      if (!enabled) {
+        final granted = await NotificationService.requestPermissions();
+        if (!granted) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(LanguageService.t('reminder_error')), backgroundColor: Colors.orange),
+          );
+          return;
+        }
+      }
       await NotificationService.setEnabled(!enabled);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
