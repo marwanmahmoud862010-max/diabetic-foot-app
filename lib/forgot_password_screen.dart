@@ -42,19 +42,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _email = email;
       setState(() { _otpSent = true; _loading = false; });
       _showSnack('${LanguageService.t('forgot_otp_sent')} $email');
-    } catch (_) {
-      // EmailJS failed; fallback to Firebase password reset email
+    } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      try {
-        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-        if (mounted) {
-          _showSnack(LanguageService.t('forgot_password_email_sent'));
-          Navigator.pop(context);
-        }
-      } catch (_) {
-        if (mounted) _showSnack(LanguageService.t('forgot_email_failed'));
-      }
+      _showSnack('${LanguageService.t('network_error')}: $e');
     }
   }
 

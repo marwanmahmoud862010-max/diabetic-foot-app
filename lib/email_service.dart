@@ -35,9 +35,9 @@ class EmailService {
       uri,
       body: jsonEncode(body),
       headers: {'Content-Type': 'application/json'},
-    );
+    ).timeout(const Duration(seconds: 15));
     if (response.statusCode != 200) {
-      throw Exception('EmailJS error: ${response.statusCode} ${response.body}');
+      throw Exception('EmailJS (${response.statusCode}): ${response.body}');
     }
   }
 }
