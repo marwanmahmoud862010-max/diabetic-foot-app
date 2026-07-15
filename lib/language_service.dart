@@ -328,7 +328,7 @@ class LanguageService {
     'email_phone_required': {'ar': 'من فضلك أدخل رقم الهاتف والبريد الإلكتروني', 'en': 'Please enter your phone number and email', 'fr': 'Veuillez entrer votre numéro de téléphone et votre email'},
     'ai_chat_title': {'ar': 'SoleMate 🤖', 'en': 'SoleMate 🤖', 'fr': 'SoleMate 🤖'},
     'ai_chat_hint': {'ar': 'اسأل عن القدم السكري...', 'en': 'Ask about diabetic foot...', 'fr': 'Posez une question sur le pied diabétique...'},
-    'ai_chat_greeting': {'ar': 'مرحباً! 👋 أنا SoleMate، رفيق قدمك الذكي. أسألني أي سؤال عن العناية بالقدم السكري.', 'en': 'Hello! 👋 I\'m SoleMate, your smart foot companion. Ask me anything about diabetic foot care.', 'fr': 'Bonjour! 👋 Je suis SoleMate, votre compagnon intelligent pour les pieds. Posez-moi n\'importe quelle question sur le soin du pied diabétique.'},
+    'ai_chat_greeting': {'ar': 'مرحباً! أنا SoleMate، رفيق قدمك الذكي. أسألني أي سؤال عن العناية بالقدم السكري وسأجيبك بالتفصيل.', 'en': 'Hello! I am SoleMate, your smart foot companion. Ask me anything about diabetic foot care and I will answer you in detail.', 'fr': 'Bonjour! Je suis SoleMate, votre compagnon intelligent pour les pieds. Posez-moi n\'importe quelle question sur le soin du pied diabétique et je vous répondrai en détail.'},
     'ai_chat_think': {'ar': 'الدكتور بيفكر...', 'en': 'Doctor is thinking...', 'fr': 'Le docteur réfléchit...'},
   };
 }
