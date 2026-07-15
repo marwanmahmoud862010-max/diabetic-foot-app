@@ -96,8 +96,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
     String? leftResultText;
     bool? leftIsRisk;
 
-    String statusText = '';
-    double progress = 0;
     bool rightDone = false;
     bool leftDone = false;
 
@@ -120,19 +118,10 @@ class _PhotoScreenState extends State<PhotoScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (!rightDone || !leftDone) ...[
-                      Text(statusText, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: 110, height: 110,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CircularProgressIndicator(value: progress / 100, strokeWidth: 6),
-                            Text('${progress.toInt()}%', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(child: CircularProgressIndicator()),
                       ),
-                      const SizedBox(height: 28),
                     ],
                     if (rightResultText != null)
                       _buildResultBox(
@@ -179,10 +168,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
 
     // Analyze right foot
     if (rightBytes != null) {
-      dlgUpdate?.call(() {
-        statusText = LanguageService.t('photo_analyzing_right');
-        progress = 10;
-      });
       final r = await _runSingleAnalysis(rightBytes);
       if (mounted) {
         if (r != null) {
@@ -194,14 +179,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
             rightResultText = r.analysis;
             rightIsRisk = r.isRisk;
             rightDone = true;
-            progress = 50;
           });
         } else {
           dlgUpdate?.call(() {
             rightResultText = LanguageService.t('network_error');
             rightIsRisk = false;
             rightDone = true;
-            progress = 50;
           });
         }
       }
@@ -209,10 +192,6 @@ class _PhotoScreenState extends State<PhotoScreen> {
 
     // Analyze left foot
     if (leftBytes != null) {
-      dlgUpdate?.call(() {
-        statusText = LanguageService.t('photo_analyzing_left');
-        progress = 55;
-      });
       final r = await _runSingleAnalysis(leftBytes);
       if (mounted) {
         if (r != null) {
@@ -224,14 +203,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
             leftResultText = r.analysis;
             leftIsRisk = r.isRisk;
             leftDone = true;
-            progress = 100;
           });
         } else {
           dlgUpdate?.call(() {
             leftResultText = LanguageService.t('network_error');
             leftIsRisk = false;
             leftDone = true;
-            progress = 100;
           });
         }
       }
