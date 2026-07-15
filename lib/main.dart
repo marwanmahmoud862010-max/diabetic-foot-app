@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_config.dart';
 import 'splash_screen.dart';
 import 'language_service.dart';
-import 'notification_service.dart';
 import 'theme_service.dart';
 import 'providers/app_providers.dart';
 import 'analytics_service.dart';
@@ -28,9 +27,6 @@ void main() async {
   await LanguageService.load();
   await ThemeService.init();
   final prefs = await SharedPreferences.getInstance();
-  try {
-    await NotificationService.init();
-  } catch (_) {}
   try {
     await AnalyticsService.init();
   } catch (_) {}

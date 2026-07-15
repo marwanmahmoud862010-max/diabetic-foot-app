@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'language_service.dart';
-import 'notification_service.dart';
 import 'error_handler.dart';
 import 'checkup_screen.dart';
 import 'photo_screen.dart';
@@ -63,11 +62,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: const Icon(Icons.edit),
             tooltip: LanguageService.t('edit_profile'),
             onPressed: _editProfile,
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            tooltip: LanguageService.t('daily_reminder'),
-            onPressed: _toggleReminder,
           ),
           IconButton(
             icon: const Icon(Icons.language, color: Colors.white),
@@ -275,33 +269,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         'phone': prefs.getString('phone') ?? '',
       }));
     ref.invalidate(profileDoneProvider);
-  }
-
-  Future<void> _toggleReminder() async {
-    try {
-      final enabled = await NotificationService.isEnabled();
-      if (!enabled) {
-        final granted = await NotificationService.requestPermissions();
-        if (!granted) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(LanguageService.t('reminder_error')), backgroundColor: Colors.orange),
-          );
-          return;
-        }
-      }
-      await NotificationService.setEnabled(!enabled);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(LanguageService.t(enabled ? 'reminder_off' : 'reminder_on'))),
-      );
-    } catch (e) {
-      debugPrint('_toggleReminder error: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(LanguageService.t('reminder_error')), backgroundColor: Colors.orange),
-      );
-    }
   }
 
   void _showLanguageSheet() {
