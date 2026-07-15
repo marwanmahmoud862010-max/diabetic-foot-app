@@ -83,24 +83,24 @@ class _AiChatScreenState extends State<AiChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Theme.of(context).colorScheme.outline, borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(Icons.attach_file, color: Colors.teal),
+              leading: Icon(Icons.attach_file, color: Theme.of(context).colorScheme.primary),
               title: Text(LanguageService.t('attach_file')),
-              subtitle: Text(LanguageService.t('attach_file'), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              subtitle: Text(LanguageService.t('attach_file'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               onTap: () { Navigator.pop(ctx); _pickFile(); },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.teal),
+              leading: Icon(Icons.photo_library, color: Theme.of(context).colorScheme.primary),
               title: Text(LanguageService.t('attach_media')),
-              subtitle: Text(LanguageService.t('attach_media'), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              subtitle: Text(LanguageService.t('attach_media'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               onTap: () { Navigator.pop(ctx); _pickMedia(); },
             ),
             ListTile(
-              leading: const Icon(Icons.mic, color: Colors.teal),
+              leading: Icon(Icons.mic, color: Theme.of(context).colorScheme.primary),
               title: Text(LanguageService.t('attach_voice')),
-              subtitle: Text(LanguageService.t('attach_voice'), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              subtitle: Text(LanguageService.t('attach_voice'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               onTap: () { Navigator.pop(ctx); _startRecording(); },
             ),
           ],
@@ -457,8 +457,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
             icon: const Icon(Icons.refresh, size: 18),
             label: Text(LanguageService.t('ai_retry')),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.teal,
-              side: const BorderSide(color: Colors.teal),
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              side: BorderSide(color: Theme.of(context).colorScheme.primary),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
           ),
@@ -502,7 +502,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   height: 12,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.white70 : Colors.teal.shade400),
+                    valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.white70 : Theme.of(context).colorScheme.primary),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -534,7 +534,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Colors.teal),
+            icon: Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.primary),
             onPressed: _loading ? null : _showAttachmentSheet,
           ),
           Expanded(

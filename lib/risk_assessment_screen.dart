@@ -123,7 +123,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
             ElevatedButton(
               onPressed: _allAnswered ? _showResult : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -141,7 +141,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -159,7 +159,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                     decoration: BoxDecoration(
                       color: value == true ? Colors.red.shade100 : Colors.white,
                       border: Border.all(
-                        color: value == true ? Colors.red : Colors.grey.shade300,
+                        color: value == true ? Colors.red : Theme.of(context).colorScheme.outline,
                         width: value == true ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -177,7 +177,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                     decoration: BoxDecoration(
                       color: value == false ? Colors.green.shade100 : Colors.white,
                       border: Border.all(
-                        color: value == false ? Colors.green : Colors.grey.shade300,
+                        color: value == false ? Colors.green : Theme.of(context).colorScheme.outline,
                         width: value == false ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(10),

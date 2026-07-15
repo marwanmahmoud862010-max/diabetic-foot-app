@@ -53,7 +53,7 @@ class DoctorAvatar extends StatelessWidget {
           label ?? LanguageService.t('doctor_label'),
           style: TextStyle(
             fontSize: 10,
-            color: Colors.grey.shade600,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -87,7 +87,7 @@ class DoctorChatBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: _bRadius(isRTL),
                 boxShadow: [
                   BoxShadow(

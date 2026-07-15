@@ -35,7 +35,7 @@ class _TipsScreenState extends State<TipsScreen> {
       'icon': Icons.content_cut,
       'titleKey': 'tip_4_title',
       'descKey': 'tip_4_desc',
-      'color': Colors.teal,
+      'color': Colors.blue,
     },
     {
       'icon': Icons.visibility,
@@ -131,7 +131,7 @@ class _TipsScreenState extends State<TipsScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.only(
                 topLeft: isRTL ? const Radius.circular(16) : const Radius.circular(4),
                 topRight: isRTL ? const Radius.circular(4) : const Radius.circular(16),
@@ -146,7 +146,7 @@ class _TipsScreenState extends State<TipsScreen> {
                 ),
               ],
             ),
-            child: const _TypingDots(),
+            child: _TypingDots(),
           ),
         ],
       ),
@@ -171,7 +171,7 @@ class _TipsScreenState extends State<TipsScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.only(
                   topLeft: isRTL ? const Radius.circular(16) : const Radius.circular(4),
                   topRight: isRTL ? const Radius.circular(4) : const Radius.circular(16),
@@ -272,7 +272,7 @@ class _TypingDotsState extends State<_TypingDots>
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade400,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     shape: BoxShape.circle,
                   ),
                 ),

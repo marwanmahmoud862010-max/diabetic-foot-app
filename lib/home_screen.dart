@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'language_service.dart';
 import 'error_handler.dart';
+import 'cloud_sync_service.dart';
 import 'checkup_screen.dart';
 import 'photo_screen.dart';
 import 'tips_screen.dart';
@@ -34,6 +35,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     LanguageService.currentLang.addListener(_onLangChanged);
+    _tryRestore();
+  }
+
+  Future<void> _tryRestore() async {
+    final restored = await CloudSyncService.restoreFromCloud();
+    if (restored && mounted) {
+      ref.invalidate(lastCheckupProvider);
+      ref.invalidate(lastTouchTestProvider);
+      ref.invalidate(lastTemperatureProvider);
+      ref.invalidate(profileDoneProvider);
+      ref.invalidate(fullHistoryProvider);
+      setState(() {});
+    }
   }
 
   void _onLangChanged() {
@@ -141,7 +155,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onPressed: _editProfile,
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: Colors.teal.shade800,
+                        foregroundColor: Theme.of(context).colorScheme.primary,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       child: Text(LanguageService.t('setup_profile_btn'), style: const TextStyle(fontSize: 12)),
@@ -237,7 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               icon: Icons.menu_book,
               title: LanguageService.t('researches'),
               subtitle: LanguageService.t('researches_sub'),
-              color: Colors.teal.shade700,
+              color: Colors.teal,
               onTap: () => pushPage(context, const ResearchesScreen()),
             ),
             const SizedBox(height: 12),
@@ -317,7 +331,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final selected = LanguageService.currentLang.value == code;
     return ListTile(
       title: Text(label, style: const TextStyle(fontSize: 16)),
-      trailing: selected ? const Icon(Icons.check, color: Colors.teal) : null,
+      trailing: selected ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary) : null,
       onTap: () async {
         await LanguageService.setLang(code);
         if (mounted) Navigator.pop(context);
@@ -356,7 +370,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   )),
                   Text(subtitle, style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   )),
                 ],
               ),

@@ -114,7 +114,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                         child: Text(LanguageService.t('photo_intro'), style: const TextStyle(fontSize: 13)),
                       ),
                       const SizedBox(height: 24),
-                      _buildFootPhoto(LanguageService.t('photo_right'), 'right', Colors.teal, _rightPhotos),
+                      _buildFootPhoto(LanguageService.t('photo_right'), 'right', Theme.of(context).colorScheme.primary, _rightPhotos),
                       const SizedBox(height: 16),
                       _buildFootPhoto(LanguageService.t('photo_left'), 'left', Colors.blue, _leftPhotos),
                       const SizedBox(height: 24),
@@ -279,7 +279,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(text, style: const TextStyle(fontSize: 14)),

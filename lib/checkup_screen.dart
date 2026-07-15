@@ -137,7 +137,7 @@ class _CheckupScreenState extends State<CheckupScreen> {
             ElevatedButton(
               onPressed: _allAnswered() ? _showResult : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -172,10 +172,10 @@ class _CheckupScreenState extends State<CheckupScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.teal.shade50 : Colors.grey.shade100,
+                color: isSelected ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isSelected ? Colors.teal : Colors.grey.shade300,
+                  color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -185,7 +185,7 @@ class _CheckupScreenState extends State<CheckupScreen> {
                     isSelected
                         ? Icons.radio_button_checked
                         : Icons.radio_button_unchecked,
-                    color: isSelected ? Colors.teal : Colors.grey,
+                    color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
                   const SizedBox(width: 10),

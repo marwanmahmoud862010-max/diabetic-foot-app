@@ -124,7 +124,7 @@ class _TouchTestScreenState extends State<TouchTestScreen> {
             ElevatedButton(
               onPressed: _allAnswered() ? _showResult : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -161,9 +161,9 @@ class _TouchTestScreenState extends State<TouchTestScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Column(
         children: [
@@ -194,17 +194,17 @@ class _TouchTestScreenState extends State<TouchTestScreen> {
                     color: results[key] == true
                         ? Colors.green.shade100
                         : Colors.white,
-                    border: Border.all(
-                        color: results[key] == true
-                            ? Colors.green
-                            : Colors.grey.shade300),
+                      border: Border.all(
+                          color: results[key] == true
+                              ? Colors.green
+                              : Theme.of(context).colorScheme.outline),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(LanguageService.t('felt_it'),
                       style: TextStyle(
                         color: results[key] == true
                             ? Colors.green.shade800
-                            : Colors.grey,
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 12,
                       )),
                 ),
@@ -218,18 +218,18 @@ class _TouchTestScreenState extends State<TouchTestScreen> {
                   decoration: BoxDecoration(
                     color: results[key] == false
                         ? Colors.red.shade100
-                        : Colors.white,
+                        : Theme.of(context).colorScheme.surface,
                     border: Border.all(
                         color: results[key] == false
                             ? Colors.red
-                            : Colors.grey.shade300),
+                            : Theme.of(context).colorScheme.outline),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(LanguageService.t('not_felt'),
                       style: TextStyle(
                         color: results[key] == false
                             ? Colors.red.shade800
-                            : Colors.grey,
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 12,
                       )),
                 ),

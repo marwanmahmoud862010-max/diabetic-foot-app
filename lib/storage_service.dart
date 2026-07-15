@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'cloud_sync_service.dart';
 
 class StorageService {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -26,6 +28,7 @@ class StorageService {
       list.add(id);
       await prefs.setStringList(key, list);
     }
+    unawaited(CloudSyncService.syncPhotosToCloud());
   }
 
   static Future<List<Map<String, String>>> getPhotos(String foot) async {
@@ -142,14 +145,17 @@ class StorageService {
 
   static Future<void> saveCheckup(String result) async {
     await _addToHistory('daily_checkup', result);
+    unawaited(CloudSyncService.syncHistoryToCloud());
   }
 
   static Future<void> saveTouchTest(String result) async {
     await _addToHistory('touch_test', result);
+    unawaited(CloudSyncService.syncHistoryToCloud());
   }
 
   static Future<void> saveTemperature(String result) async {
     await _addToHistory('temperature', result);
+    unawaited(CloudSyncService.syncHistoryToCloud());
   }
 
   static Future<void> saveRiskAssessment(int level, String titleKey) async {
@@ -157,5 +163,6 @@ class StorageService {
     await prefs.setInt('risk_level', level);
     await prefs.setString('risk_title', titleKey);
     await _addToHistory('risk_assessment', titleKey);
+    unawaited(CloudSyncService.syncAll());
   }
 }

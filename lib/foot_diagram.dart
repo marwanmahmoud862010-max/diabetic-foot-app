@@ -22,13 +22,14 @@ class FootDiagram extends StatelessWidget {
       width: size,
       height: size * 1.5,
       child: CustomPaint(
-        painter: _FootPainter(
-          highlightedToe: highlightedToe,
-          highlightedRegion: highlightedRegion,
-          showLabels: showLabels,
-          isLeft: footSide == 'left',
-          greyFill: Theme.of(context).colorScheme.surfaceContainerHighest,
-        ),
+          painter: _FootPainter(
+            highlightedToe: highlightedToe,
+            highlightedRegion: highlightedRegion,
+            showLabels: showLabels,
+            isLeft: footSide == 'left',
+            greyFill: Theme.of(context).colorScheme.surfaceContainerHighest,
+            labelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         size: Size(size, size * 1.5),
       ),
     );
@@ -41,6 +42,7 @@ class _FootPainter extends CustomPainter {
   final bool showLabels;
   final bool isLeft;
   final Color greyFill;
+  final Color labelColor;
 
   _FootPainter({
     this.highlightedToe,
@@ -48,6 +50,7 @@ class _FootPainter extends CustomPainter {
     this.showLabels = true,
     this.isLeft = false,
     required this.greyFill,
+    required this.labelColor,
   });
 
   @override
@@ -121,7 +124,7 @@ class _FootPainter extends CustomPainter {
           text: TextSpan(
             text: '${i + 1}',
             style: TextStyle(
-              color: hl ? Colors.orange.shade800 : Colors.grey.shade600,
+              color: hl ? Colors.orange.shade800 : labelColor,
               fontSize: w * 0.085,
               fontWeight: FontWeight.bold,
             ),
@@ -137,5 +140,7 @@ class _FootPainter extends CustomPainter {
   bool shouldRepaint(covariant _FootPainter old) =>
       old.highlightedToe != highlightedToe ||
       old.highlightedRegion != highlightedRegion ||
-      old.isLeft != isLeft;
+      old.isLeft != isLeft ||
+      old.greyFill != greyFill ||
+      old.labelColor != labelColor;
 }

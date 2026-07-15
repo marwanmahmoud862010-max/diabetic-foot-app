@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'language_service.dart';
+import 'cloud_sync_service.dart';
 import 'widgets/dark_mode_toggle.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -86,12 +88,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.camera, color: Colors.teal),
+              leading: Icon(Icons.camera, color: Theme.of(context).colorScheme.primary),
               title: Text(LanguageService.t('camera')),
               onTap: () { Navigator.pop(context); _pickPhoto(ImageSource.camera); },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.teal),
+              leading: Icon(Icons.photo_library, color: Theme.of(context).colorScheme.primary),
               title: Text(LanguageService.t('gallery')),
               onTap: () { Navigator.pop(context); _pickPhoto(ImageSource.gallery); },
             ),
@@ -126,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.teal,
+                        color: Theme.of(context).colorScheme.primary,
                         shape: BoxShape.circle,
                         image: _photoData != null
                             ? DecorationImage(
@@ -148,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.camera_alt, color: Colors.teal, size: 20),
+                        child: Icon(Icons.camera_alt, color: Theme.of(context).colorScheme.primary, size: 20),
                       ),
                     ),
                   ],
@@ -161,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPressed: _showPhotoPicker,
                 child: Text(
                   LanguageService.t('change_photo'),
-                  style: const TextStyle(color: Colors.teal),
+                  style: TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
               ),
             ),
@@ -190,9 +192,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -211,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ElevatedButton(
               onPressed: _save,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -245,16 +247,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: Colors.teal),
+            prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Theme.of(context).colorScheme.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
             ),
           ),
         ),
@@ -275,6 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await prefs.setString('profile_photo', _photoData!);
     }
     await prefs.setBool('profile_done', true);
+    unawaited(CloudSyncService.syncProfileToCloud());
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -93,13 +93,13 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Container(
                   width: 90, height: 90,
-                  decoration: BoxDecoration(color: Colors.teal, borderRadius: BorderRadius.circular(45)),
+                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(45)),
                   child: const Icon(Icons.person, color: Colors.white, size: 56),
                 ),
                 const SizedBox(height: 24),
                 Text(LanguageService.t('login_title'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text(LanguageService.t('login_subtitle'), style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                Text(LanguageService.t('login_subtitle'), style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 32),
                 TextField(
                   controller: emailController,
@@ -107,11 +107,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: LanguageService.t('email_label'),
                     hintText: LanguageService.t('email_hint'),
-                    prefixIcon: const Icon(Icons.email, color: Colors.teal),
-                    filled: true, fillColor: Colors.white,
+                    prefixIcon: Icon(Icons.email, color: Theme.of(context).colorScheme.primary),
+                    filled: true, fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                     ),
                   ),
                 ),
@@ -122,11 +122,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: LanguageService.t('password_label'),
                     hintText: LanguageService.t('password_hint'),
-                    prefixIcon: const Icon(Icons.lock, color: Colors.teal),
-                    filled: true, fillColor: Colors.white,
+                    prefixIcon: Icon(Icons.lock, color: Theme.of(context).colorScheme.primary),
+                    filled: true, fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                     ),
                   ),
                 ),
@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: TextButton(
                     onPressed: () => pushPage(context, const ForgotPasswordScreen()),
                     child: Text(LanguageService.t('forgot_password'),
-                        style: TextStyle(color: Colors.teal.shade700, fontSize: 13)),
+                        style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 13)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -145,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _loading ? null : _loginWithEmail,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

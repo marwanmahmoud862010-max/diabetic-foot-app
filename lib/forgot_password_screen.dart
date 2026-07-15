@@ -87,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.teal),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.primary),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [const DarkModeToggle()],
@@ -101,14 +101,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 Container(
                   width: 90, height: 90,
-                  decoration: BoxDecoration(color: Colors.teal, borderRadius: BorderRadius.circular(45)),
+                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(45)),
                   child: const Icon(Icons.lock_reset, color: Colors.white, size: 48),
                 ),
                 const SizedBox(height: 24),
                 Text(LanguageService.t('forgot_password_title'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(LanguageService.t(_otpSent ? 'forgot_password_subtitle_otp' : 'forgot_password_subtitle_send'),
-                    style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 32),
                 if (!_otpSent) ...[
                   TextField(
@@ -117,11 +117,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: InputDecoration(
                       labelText: LanguageService.t('email_label'),
                       hintText: LanguageService.t('email_hint'),
-                      prefixIcon: const Icon(Icons.email, color: Colors.teal),
-                      filled: true, fillColor: Colors.white,
+                      prefixIcon: Icon(Icons.email, color: Theme.of(context).colorScheme.primary),
+                      filled: true, fillColor: Theme.of(context).colorScheme.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                       ),
                     ),
                   ),
@@ -132,11 +132,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: InputDecoration(
                       labelText: LanguageService.t('otp_label'),
                       hintText: LanguageService.t('otp_hint'),
-                      prefixIcon: const Icon(Icons.lock, color: Colors.teal),
-                      filled: true, fillColor: Colors.white,
+                      prefixIcon: Icon(Icons.lock, color: Theme.of(context).colorScheme.primary),
+                      filled: true, fillColor: Theme.of(context).colorScheme.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                       ),
                     ),
                   ),
@@ -147,7 +147,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: ElevatedButton(
                     onPressed: _loading ? null : (_otpSent ? _verifyOtp : _sendOtp),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

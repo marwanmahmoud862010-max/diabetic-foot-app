@@ -124,7 +124,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 controller: _searchCtrl,
                 decoration: InputDecoration(
                   hintText: LanguageService.t('search'),
-                  prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                  prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
                   filled: true, fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -145,10 +145,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   return Padding(
                     padding: const EdgeInsetsDirectional.only(end: 8),
                     child: FilterChip(
-                      label: Text(type == 'all' ? LanguageService.t('all') : LanguageService.t(type), style: TextStyle(fontSize: 12, color: selected ? Colors.white : Colors.teal.shade700)),
+                      label: Text(type == 'all' ? LanguageService.t('all') : LanguageService.t(type), style: TextStyle(fontSize: 12, color: selected ? Colors.white : Theme.of(context).colorScheme.primary)),
                       selected: selected,
-                      selectedColor: Colors.teal,
-                      backgroundColor: Colors.teal.shade50,
+                      selectedColor: Theme.of(context).colorScheme.primary,
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                       onSelected: (_) {
                         setState(() => _typeFilter = type);
                         _applyFilter();
@@ -171,7 +171,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       child: Text(
                         LanguageService.t('no_history'),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16, color: Colors.grey),
+                        style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     );
                   }
@@ -223,7 +223,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                     ],
                                   ),
                                 ),
-                                Text(d.length >= 10 ? d.substring(0, 10) : d, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                Text(d.length >= 10 ? d.substring(0, 10) : d, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                               ],
                             ),
                           ),

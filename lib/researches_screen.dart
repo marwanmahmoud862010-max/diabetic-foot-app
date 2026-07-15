@@ -118,7 +118,7 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.teal,
+                    color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -144,11 +144,11 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, size: 12, color: Colors.grey.shade600),
+                          Icon(Icons.calendar_today, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           const SizedBox(width: 4),
                           Text(
                             '${LanguageService.t('research_date')}: ${research['date'] ?? ''}',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -157,7 +157,7 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
                 ),
                 Column(
                   children: [
-                    Icon(Icons.arrow_back_ios, color: Colors.teal, size: 16),
+                    Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.primary, size: 16),
                     const Padding(
                       padding: EdgeInsets.only(top: 4),
                       child: Icon(Icons.picture_as_pdf, color: Colors.red, size: 14),

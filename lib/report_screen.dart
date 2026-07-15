@@ -452,14 +452,14 @@ class _ReportScreenState extends State<ReportScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.teal.shade200),
+                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.person, color: Colors.teal),
+                          Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
                           const SizedBox(width: 8),
                           Text(LanguageService.t('report_patient_data'),
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -554,7 +554,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       ),
                       const SizedBox(height: 12),
                       if ((data['history'] as List).isEmpty)
-                        Text(LanguageService.t('no_history'), style: const TextStyle(color: Colors.grey))
+                        Text(LanguageService.t('no_history'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
                       else
                         ...(data['history'] as List).reversed.take(7).map((item) {
                           final date = _formatHistoryDate(item['date']);
@@ -576,7 +576,7 @@ class _ReportScreenState extends State<ReportScreen> {
                               children: [
                                 const Text('• ', style: TextStyle(fontSize: 12)),
                                 Expanded(child: Text('$date - $type', style: const TextStyle(fontSize: 12))),
-                                Text(resultText, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+                                Text(resultText, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
                               ],
                             ),
                           );
@@ -602,7 +602,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   icon: const Icon(Icons.picture_as_pdf),
                   label: Text(LanguageService.t('report_save_pdf')),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -646,15 +646,15 @@ class _ReportScreenState extends State<ReportScreen> {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Row(
         children: [
           Text('$icon ', style: const TextStyle(fontSize: 16)),
           Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-          Text(value, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+          Text(value, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13)),
         ],
       ),
     );

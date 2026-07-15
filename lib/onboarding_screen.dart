@@ -37,7 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         icon: Icons.health_and_safety,
         title: LanguageService.t('onboarding_title_1'),
         desc: LanguageService.t('onboarding_desc_1'),
-        color: Colors.teal,
+        color: Colors.blue,
       ),
       _Page(
         icon: Icons.search,
@@ -72,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: _page == i ? 24 : 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _page == i ? pages[i].color : Colors.grey.shade300,
+                  color: _page == i ? pages[i].color : Theme.of(context).colorScheme.outline,
                   borderRadius: BorderRadius.circular(4),
                 ),
               )),
@@ -130,7 +130,7 @@ class _Page extends StatelessWidget {
           const SizedBox(height: 32),
           Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
           const SizedBox(height: 16),
-          Text(desc, style: TextStyle(fontSize: 15, color: Colors.grey.shade600), textAlign: TextAlign.center),
+          Text(desc, style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurfaceVariant), textAlign: TextAlign.center),
         ],
       ),
     );
