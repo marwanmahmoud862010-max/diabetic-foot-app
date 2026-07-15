@@ -295,7 +295,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(LanguageService.t(enabled ? 'reminder_off' : 'reminder_on'))),
       );
-    } catch (_) {
+    } catch (e) {
+      debugPrint('_toggleReminder error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(LanguageService.t('reminder_error')), backgroundColor: Colors.orange),

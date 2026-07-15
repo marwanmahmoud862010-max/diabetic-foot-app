@@ -28,20 +28,34 @@ class NotificationService {
       android: androidSettings,
       iOS: iosSettings,
     );
-    await flutterLocalNotificationsPlugin.initialize(initSettings);
+    try {
+      await flutterLocalNotificationsPlugin.initialize(initSettings);
+    } catch (_) {
+      return;
+    }
     await _rescheduleIfEnabled();
     _initialized = true;
   }
 
   static Future<bool> requestPermissions() async {
+    if (kIsWeb) return true;
+    bool allGranted = true;
     try {
       final android = flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
       if (android != null) {
-        return await android.requestNotificationsPermission() ?? false;
+        final granted = await android.requestNotificationsPermission();
+        if (granted != true) {
+          allGranted = false;
+        }
+        try {
+          await android.requestExactAlarmsPermission();
+        } catch (_) {}
       }
-    } catch (_) {}
-    return true;
+    } catch (_) {
+      allGranted = false;
+    }
+    return allGranted;
   }
 
   static Future<void> _rescheduleIfEnabled() async {

@@ -174,6 +174,9 @@ class _PhotoScreenState extends State<PhotoScreen> {
       },
     );
 
+    if (rightBytes == null) rightDone = true;
+    if (leftBytes == null) leftDone = true;
+
     // Analyze right foot
     if (rightBytes != null) {
       dlgUpdate?.call(() {
@@ -181,17 +184,26 @@ class _PhotoScreenState extends State<PhotoScreen> {
         progress = 10;
       });
       final r = await _runSingleAnalysis(rightBytes);
-      if (r != null && mounted) {
-        final photos = _rightPhotos;
-        if (photos.isNotEmpty) {
-          await StorageService.saveAnalysis(photos.first['id'] ?? '', r.analysis, r.isRisk ? 'high' : 'low');
+      if (mounted) {
+        if (r != null) {
+          final photos = _rightPhotos;
+          if (photos.isNotEmpty) {
+            await StorageService.saveAnalysis(photos.first['id'] ?? '', r.analysis, r.isRisk ? 'high' : 'low');
+          }
+          dlgUpdate?.call(() {
+            rightResultText = r.analysis;
+            rightIsRisk = r.isRisk;
+            rightDone = true;
+            progress = 50;
+          });
+        } else {
+          dlgUpdate?.call(() {
+            rightResultText = LanguageService.t('network_error');
+            rightIsRisk = false;
+            rightDone = true;
+            progress = 50;
+          });
         }
-        dlgUpdate?.call(() {
-          rightResultText = r.analysis;
-          rightIsRisk = r.isRisk;
-          rightDone = true;
-          progress = 50;
-        });
       }
     }
 
@@ -202,17 +214,26 @@ class _PhotoScreenState extends State<PhotoScreen> {
         progress = 55;
       });
       final r = await _runSingleAnalysis(leftBytes);
-      if (r != null && mounted) {
-        final photos = _leftPhotos;
-        if (photos.isNotEmpty) {
-          await StorageService.saveAnalysis(photos.first['id'] ?? '', r.analysis, r.isRisk ? 'high' : 'low');
+      if (mounted) {
+        if (r != null) {
+          final photos = _leftPhotos;
+          if (photos.isNotEmpty) {
+            await StorageService.saveAnalysis(photos.first['id'] ?? '', r.analysis, r.isRisk ? 'high' : 'low');
+          }
+          dlgUpdate?.call(() {
+            leftResultText = r.analysis;
+            leftIsRisk = r.isRisk;
+            leftDone = true;
+            progress = 100;
+          });
+        } else {
+          dlgUpdate?.call(() {
+            leftResultText = LanguageService.t('network_error');
+            leftIsRisk = false;
+            leftDone = true;
+            progress = 100;
+          });
         }
-        dlgUpdate?.call(() {
-          leftResultText = r.analysis;
-          leftIsRisk = r.isRisk;
-          leftDone = true;
-          progress = 100;
-        });
       }
     }
 
@@ -247,16 +268,21 @@ class _PhotoScreenState extends State<PhotoScreen> {
               ],
             },
           ],
-          'max_tokens': 200,
+          'max_tokens': 1000,
         }),
       );
-      if (!mounted || response.statusCode != 200) return null;
+      if (!mounted) return null;
+      if (response.statusCode != 200) {
+        debugPrint('Groq API error ${response.statusCode}: ${response.body}');
+        return null;
+      }
       final data = jsonDecode(response.body);
       final raw = data['choices']?[0]?['message']?['content'] as String? ?? '';
       final isRisk = raw.startsWith('RISK') || raw.startsWith('risk');
       final analysis = isRisk ? raw.substring(4).trim() : raw;
       return (isRisk: isRisk, analysis: analysis);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('_runSingleAnalysis error: $e');
       return null;
     }
   }
