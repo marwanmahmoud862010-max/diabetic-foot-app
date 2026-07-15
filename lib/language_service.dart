@@ -314,6 +314,7 @@ class LanguageService {
     'forgot_otp_wrong': {'ar': 'الكود غير صحيح', 'en': 'Wrong code', 'fr': 'Code incorrect'},
     'forgot_otp_sent': {'ar': 'تم إرسال الكود إلى', 'en': 'Code sent to', 'fr': 'Code envoyé à'},
     'forgot_password_email_sent': {'ar': 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', 'en': 'Password reset link sent to your email', 'fr': 'Lien de réinitialisation du mot de passe envoyé à votre email'},
+    'forgot_email_failed': {'ar': 'فشل إرسال البريد. تحقق من اتصالك وحاول مرة أخرى.', 'en': 'Failed to send email. Check your connection and try again.', 'fr': "Échec de l'envoi de l'email. Vérifiez votre connexion et réessayez."},
     'otp_label': {'ar': 'OTP', 'en': 'OTP', 'fr': 'OTP'},
     'otp_hint': {'ar': 'أدخل الكود', 'en': 'Enter code', 'fr': 'Entrez le code'},
     'setup_profile_later': {'ar': 'تخطي الآن', 'en': 'Skip for now', 'fr': 'Passer pour le moment'},

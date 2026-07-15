@@ -6,6 +6,7 @@ import 'home_screen.dart';
 import 'route_transition.dart';
 import 'email_service.dart';
 import 'language_service.dart';
+import 'connectivity_service.dart';
 import 'widgets/dark_mode_toggle.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -29,6 +30,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _showSnack(LanguageService.t('forgot_email_empty'));
       return;
     }
+    if (!await ConnectivityService.check()) {
+      _showSnack(LanguageService.t('offline_desc'));
+      return;
+    }
     setState(() => _loading = true);
     try {
       _otpCode = EmailService.generateOtp();
@@ -37,10 +42,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _email = email;
       setState(() { _otpSent = true; _loading = false; });
       _showSnack('${LanguageService.t('forgot_otp_sent')} $email');
-    } catch (e) {
+    } catch (_) {
+      // EmailJS failed; fallback to Firebase password reset email
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSnack(LanguageService.t('network_error'));
+      try {
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+        if (mounted) {
+          _showSnack(LanguageService.t('forgot_password_email_sent'));
+          Navigator.pop(context);
+        }
+      } catch (_) {
+        if (mounted) _showSnack(LanguageService.t('forgot_email_failed'));
+      }
     }
   }
 
