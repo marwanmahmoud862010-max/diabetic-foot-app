@@ -306,6 +306,7 @@ class LanguageService {
     'forgot_password': {'ar': 'نسيت الباسوورد؟', 'en': 'Forgot password?', 'fr': 'Mot de passe oublié ?'},
     'forgot_password_title': {'ar': 'نسيت الباسوورد', 'en': 'Forgot Password', 'fr': 'Mot de passe oublié'},
     'network_error': {'ar': 'حدث خطأ في الاتصال. تحقق من الإنترنت وحاول مرة أخرى.', 'en': 'A network error occurred. Check your connection and try again.', 'fr': 'Une erreur réseau s\'est produite. Vérifiez votre connexion et réessayez.'},
+    'photo_size_error': {'ar': 'حجم الصورة كبير جداً. اختر صورة أقل من 4 ميغابايت.', 'en': 'Image too large. Choose an image under 4 MB.', 'fr': 'Image trop grande. Choisissez une image de moins de 4 Mo.'},
     'forgot_password_subtitle_send': {'ar': 'أدخل إيميلك لاستعادة الحساب', 'en': 'Enter your email to recover your account', 'fr': 'Entrez votre email pour récupérer votre compte'},
     'forgot_password_subtitle_otp': {'ar': 'أدخل الكود المرسل إلى بريدك', 'en': 'Enter the code sent to your email', 'fr': 'Entrez le code envoyé à votre email'},
     'forgot_send_code': {'ar': 'إرسال الكود', 'en': 'Send Code', 'fr': 'Envoyer le code'},

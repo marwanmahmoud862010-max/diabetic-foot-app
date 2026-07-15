@@ -112,7 +112,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
     try {
       final xFile = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1024, maxHeight: 1024);
       if (xFile != null) {
-        final base64Image = base64Encode(await xFile.readAsBytes());
+        final bytes = await xFile.readAsBytes();
+        if (bytes.lengthInBytes > 4000000) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('photo_size_error'))));
+          return;
+        }
+        final base64Image = base64Encode(bytes);
         if (!mounted) return;
         setState(() => _messages.add({'role': 'user', 'text': LanguageService.t('attach_sent_media')}));
         _scrollToBottom();
@@ -129,46 +135,52 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _analyzeImage(String base64Image) async {
     setState(() => _loading = true);
-    try {
-      final groqKey = ApiConfig.groqApiKey;
-      if (groqKey.isEmpty || groqKey == 'YOUR_GROQ_API_KEY') {
-        setState(() {
-          _messages.add({'role': 'model', 'text': LanguageService.t('ai_key_error')});
-          _loading = false;
-        });
-        return;
-      }
-      final response = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer $groqKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
-          'messages': [
-            {'role': 'user', 'content': [
-              {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
-              {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
-            ]},
-          ],
-          'max_tokens': 1000,
-        }),
-      );
+    final groqKey = ApiConfig.groqApiKey;
+    if (groqKey.isEmpty || groqKey == 'YOUR_GROQ_API_KEY') {
       if (!mounted) return;
-      if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        final aiText = body['choices']?[0]?['message']?['content'] ?? LanguageService.t('ai_no_response');
-        setState(() => _messages.add({'role': 'model', 'text': aiText.trim()}));
-      } else {
-        setState(() => _messages.add({'role': 'model', 'text': '${LanguageService.t('ai_error')}HTTP ${response.statusCode}'}));
-      }
-    } catch (e) {
+      setState(() {
+        _messages.add({'role': 'model', 'text': LanguageService.t('ai_key_error')});
+        _loading = false;
+      });
+      return;
+    }
+    String? result;
+    for (int attempt = 0; attempt < 2; attempt++) {
+      if (attempt > 0) await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
-      setState(() => _messages.add({'role': 'model', 'text': '${LanguageService.t('ai_connection_error')}${e.toString()}'}));
+      try {
+        final response = await http.post(
+          Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+          headers: {
+            'Authorization': 'Bearer $groqKey',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
+            'messages': [
+              {'role': 'user', 'content': [
+                {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
+                {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
+              ]},
+            ],
+            'max_tokens': 1000,
+          }),
+        );
+        if (!mounted) return;
+        if (response.statusCode == 200) {
+          final body = jsonDecode(response.body);
+          result = body['choices']?[0]?['message']?['content'] as String?;
+          break;
+        }
+      } catch (_) {}
     }
     if (!mounted) return;
-    setState(() => _loading = false);
+    if (result != null) {
+      setState(() => _messages.add({'role': 'model', 'text': result!.trim()}));
+    } else {
+      setState(() => _messages.add({'role': 'model', 'text': LanguageService.t('ai_no_response')}));
+    }
+    _loading = false;
     _scrollToBottom();
   }
 
