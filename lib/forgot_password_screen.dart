@@ -1,6 +1,4 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'route_transition.dart';
@@ -55,18 +53,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (otp != _otpCode) { _showSnack(LanguageService.t('forgot_otp_wrong')); return; }
     setState(() => _loading = true);
     try {
-      final randomPass = '${Random().nextInt(99999999)}StepGuard${Random().nextInt(9999)}';
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _email, password: randomPass);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('email', _email);
       await prefs.setBool('is_logged_in', true);
       if (mounted) pushReplacementPage(context, const HomeScreen());
-    } on FirebaseAuthException catch (_) {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: _email);
-      if (mounted) {
-        _showSnack(LanguageService.t('forgot_password_email_sent'));
-        Navigator.pop(context);
-      }
     } catch (_) {
       if (mounted) _showSnack(LanguageService.t('network_error'));
     } finally {
