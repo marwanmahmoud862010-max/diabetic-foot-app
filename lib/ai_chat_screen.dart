@@ -222,6 +222,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
         return;
       }
 
+      if (_messages.length > 10) {
+        _messages.removeRange(0, _messages.length - 10);
+      }
       final messages = <Map<String, String>>[
         {'role': 'system', 'content': _systemPrompt},
       ];

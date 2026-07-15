@@ -226,42 +226,49 @@ class _PhotoScreenState extends State<PhotoScreen> {
       }
       return null;
     }
-    try {
-      final base64Image = base64Encode(bytes);
-      final response = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer ${ApiConfig.groqApiKey}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
-          'messages': [
-            {
-              'role': 'user',
-              'content': [
-                {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
-                {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
-              ],
-            },
-          ],
-          'max_tokens': 1000,
-        }),
-      );
-      if (!mounted) return null;
-      if (response.statusCode != 200) {
-        debugPrint('Groq API error ${response.statusCode}: ${response.body}');
-        return null;
+    for (int attempt = 0; attempt < 2; attempt++) {
+      if (attempt > 0) await Future.delayed(const Duration(seconds: 1));
+      try {
+        final base64Image = base64Encode(bytes);
+        final response = await http.post(
+          Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+          headers: {
+            'Authorization': 'Bearer ${ApiConfig.groqApiKey}',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
+            'messages': [
+              {
+                'role': 'user',
+                'content': [
+                  {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
+                  {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
+                ],
+              },
+            ],
+            'max_tokens': 1000,
+          }),
+        );
+        if (!mounted) return null;
+        if (response.statusCode != 200) {
+          debugPrint('Groq API error ${response.statusCode}: ${response.body}');
+          if (attempt == 1) return null;
+          continue;
+        }
+        final data = jsonDecode(response.body);
+        final raw = data['choices']?[0]?['message']?['content'] as String? ?? '';
+        final isRisk = raw.startsWith('RISK') || raw.startsWith('risk') || raw.startsWith('خطر') || raw.startsWith('RISQUE');
+        final analysis = isRisk ? raw.replaceFirst(RegExp(r'^(RISK|risk|خطر|RISQUE)\s*'), '') : raw;
+        return (isRisk: isRisk, analysis: analysis);
+      } catch (e) {
+        if (attempt == 1) {
+          debugPrint('_runSingleAnalysis error: $e');
+          return null;
+        }
       }
-      final data = jsonDecode(response.body);
-      final raw = data['choices']?[0]?['message']?['content'] as String? ?? '';
-      final isRisk = raw.startsWith('RISK') || raw.startsWith('risk');
-      final analysis = isRisk ? raw.substring(4).trim() : raw;
-      return (isRisk: isRisk, analysis: analysis);
-    } catch (e) {
-      debugPrint('_runSingleAnalysis error: $e');
-      return null;
     }
+    return null;
   }
 
   Widget _buildResultBox(String footLabel, String analysis, bool isRisk) {
