@@ -66,12 +66,12 @@ class MyApp extends StatelessWidget {
                 ),
               ),
               darkTheme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal, brightness: Brightness.dark),
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
                 useMaterial3: true,
                 scaffoldBackgroundColor: const Color(0xFF121212),
                 appBarTheme: AppBarTheme(
                   centerTitle: true,
-                  backgroundColor: Colors.teal.shade800,
+                  backgroundColor: Colors.blue.shade800,
                   foregroundColor: Colors.white,
                 ),
                 dividerTheme: DividerThemeData(

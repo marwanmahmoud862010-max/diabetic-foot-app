@@ -81,12 +81,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         error: (_, _) => _buildBody(checkupAsync, touchAsync, tempAsync, false),
         data: (profileDone) => _buildBody(checkupAsync, touchAsync, tempAsync, profileDone),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => pushPage(context, const AiChatScreen()),
-        backgroundColor: const Color(0xFF004D40),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.auto_awesome),
-      ),
+      floatingActionButton: Builder(builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return FloatingActionButton(
+          onPressed: () => pushPage(context, const AiChatScreen()),
+          backgroundColor: isDark ? Colors.blue.shade700 : const Color(0xFF004D40),
+          foregroundColor: Colors.white,
+          child: const Icon(Icons.auto_awesome),
+        );
+      }),
     );
   }
 
@@ -111,8 +114,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00897B), Color(0xFF004D40)],
+                  gradient: LinearGradient(
+                    colors: Theme.of(context).brightness == Brightness.dark
+                        ? [Colors.blue.shade700, Colors.blue.shade900]
+                        : [const Color(0xFF00897B), const Color(0xFF004D40)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
@@ -54,6 +55,8 @@ class _ReportScreenState extends State<ReportScreen> {
     final lastTouch = await StorageService.getLastTouchTest();
     final lastTemp = await StorageService.getLastTemperature();
     final risk = await StorageService.getLastRiskAssessment();
+    final rightPhotos = await StorageService.getPhotos('right');
+    final leftPhotos = await StorageService.getPhotos('left');
 
     final data = {
       'name': name,
@@ -68,6 +71,8 @@ class _ReportScreenState extends State<ReportScreen> {
       'lastTemp': lastTemp,
       'riskLevel': risk['level'],
       'riskTitle': risk['title'],
+      'rightPhotos': rightPhotos,
+      'leftPhotos': leftPhotos,
     };
     reportData = data;
     return data;
@@ -158,6 +163,14 @@ class _ReportScreenState extends State<ReportScreen> {
           pw.SizedBox(height: 4),
           pw.Bullet(text: LanguageService.t(riskAdviceKey), style: pw.TextStyle(fontSize: 11)),
           pw.SizedBox(height: 12),
+
+          pw.Divider(thickness: 1),
+          pw.SizedBox(height: 12),
+
+          _pdfSectionTitle(LanguageService.t('foot_photo')),
+          pw.SizedBox(height: 8),
+          ..._buildPdfPhotos(d),
+          pw.SizedBox(height: 16),
 
           pw.Divider(thickness: 1),
           pw.SizedBox(height: 12),
@@ -254,6 +267,34 @@ class _ReportScreenState extends State<ReportScreen> {
     );
   }
 
+  List<pw.Widget> _buildPdfPhotos(Map<String, dynamic> d) {
+    final rightPhotos = d['rightPhotos'] as List? ?? [];
+    final leftPhotos = d['leftPhotos'] as List? ?? [];
+    final widgets = <pw.Widget>[];
+    if (rightPhotos.isNotEmpty) {
+      final data = (rightPhotos.first['data'] as String? ?? '');
+      if (data.isNotEmpty) {
+        widgets.add(pw.Text(LanguageService.t('photo_right'), style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)));
+        widgets.add(pw.SizedBox(height: 4));
+        widgets.add(pw.Image(pw.MemoryImage(base64Decode(data)), width: 200));
+        widgets.add(pw.SizedBox(height: 8));
+      }
+    }
+    if (leftPhotos.isNotEmpty) {
+      final data = (leftPhotos.first['data'] as String? ?? '');
+      if (data.isNotEmpty) {
+        widgets.add(pw.Text(LanguageService.t('photo_left'), style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)));
+        widgets.add(pw.SizedBox(height: 4));
+        widgets.add(pw.Image(pw.MemoryImage(base64Decode(data)), width: 200));
+        widgets.add(pw.SizedBox(height: 8));
+      }
+    }
+    if (widgets.isEmpty) {
+      widgets.add(pw.Text(LanguageService.t('no_photos'), style: pw.TextStyle(fontSize: 10, color: PdfColors.grey)));
+    }
+    return widgets;
+  }
+
   Future<void> _sendToWhatsApp() async {
     if (reportData == null) return;
     final d = reportData!;
@@ -322,6 +363,21 @@ class _ReportScreenState extends State<ReportScreen> {
       '',
       '📆 ${LanguageService.t('report_history')} (${d['history'].length} ${LanguageService.t('report_exams')})',
       historyEntries.isNotEmpty ? historyEntries : LanguageService.t('no_history'),
+      '',
+      '━━━━━━━━━━━━━━━━━━━━━━━',
+      '',
+      '━━━━━━━━━━━━━━━━━━━━━━━',
+      '',
+      '📷 ${LanguageService.t('foot_photo')}',
+      ...() {
+        final rightPhotos = d['rightPhotos'] as List? ?? [];
+        final leftPhotos = d['leftPhotos'] as List? ?? [];
+        final lines = <String>[];
+        if (rightPhotos.isNotEmpty) lines.add('${LanguageService.t('photo_right')}: ✅ ${LanguageService.t('photos_available')}');
+        if (leftPhotos.isNotEmpty) lines.add('${LanguageService.t('photo_left')}: ✅ ${LanguageService.t('photos_available')}');
+        if (lines.isEmpty) lines.add(LanguageService.t('no_photos'));
+        return lines;
+      }(),
       '',
       '━━━━━━━━━━━━━━━━━━━━━━━',
       '',

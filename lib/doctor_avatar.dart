@@ -33,9 +33,11 @@ class DoctorAvatar extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF00897B), Color(0xFF004D40)],
+                      colors: Theme.of(context).brightness == Brightness.dark
+                          ? [Colors.blue.shade500, Colors.blue.shade800]
+                          : [const Color(0xFF00897B), const Color(0xFF004D40)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),

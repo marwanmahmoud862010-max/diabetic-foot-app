@@ -64,6 +64,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
     });
   }
 
+  void _clearChat() {
+    setState(() {
+      _messages.clear();
+      _loading = false;
+    });
+    _addGreeting();
+  }
+
   void _showAttachmentSheet() {
     showModalBottomSheet(
       context: context,
@@ -149,23 +157,25 @@ class _AiChatScreenState extends State<AiChatScreen> {
       if (attempt > 0) await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
       try {
-        final response = await http.post(
-          Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-          headers: {
-            'Authorization': 'Bearer $groqKey',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
-            'messages': [
-              {'role': 'user', 'content': [
-                {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
-                {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
-              ]},
-            ],
-            'max_tokens': 1000,
-          }),
-        );
+        final response = await http
+            .post(
+              Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+              headers: {
+                'Authorization': 'Bearer $groqKey',
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode({
+                'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
+                'messages': [
+                  {'role': 'user', 'content': [
+                    {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
+                    {'type': 'image_url', 'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}},
+                  ]},
+                ],
+                'max_tokens': 1000,
+              }),
+            )
+            .timeout(const Duration(seconds: 30));
         if (!mounted) return;
         if (response.statusCode == 200) {
           final body = jsonDecode(response.body);
@@ -244,22 +254,24 @@ class _AiChatScreenState extends State<AiChatScreen> {
         messages.add({'role': msg['role']! == 'user' ? 'user' : 'assistant', 'content': msg['text']!});
       }
 
-      final response = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-        headers: {
-          'Authorization': 'Bearer $groqKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'llama-3.3-70b-versatile',
-          'messages': messages,
-          'temperature': 0.5,
-          'max_tokens': 4096,
-          'top_p': 0.9,
-          'frequency_penalty': 0.3,
-          'presence_penalty': 0.3,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+            headers: {
+              'Authorization': 'Bearer $groqKey',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'model': 'llama-3.3-70b-versatile',
+              'messages': messages,
+              'temperature': 0.5,
+              'max_tokens': 4096,
+              'top_p': 0.9,
+              'frequency_penalty': 0.3,
+              'presence_penalty': 0.3,
+            }),
+          )
+          .timeout(const Duration(seconds: 45));
 
       if (!mounted) return;
       if (response.statusCode == 200) {
@@ -277,13 +289,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
       final errMsg = err['error']?['message'] ?? 'HTTP ${response.statusCode}';
       setState(() {
         _messages.add({'role': 'model', 'text': '${LanguageService.t('ai_error')}$errMsg'});
+        _messages.add({'role': 'retry', 'text': userMessage});
         _loading = false;
       });
       _scrollToBottom();
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _messages.add({'role': 'model', 'text': '${LanguageService.t('ai_connection_error')}${e.toString()}'});
+        _messages.add({'role': 'model', 'text': LanguageService.t('ai_connection_error')});
+        _messages.add({'role': 'retry', 'text': userMessage});
         _loading = false;
       });
       _scrollToBottom();
@@ -306,7 +320,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
         ),
         centerTitle: true,
         elevation: 0,
-        actions: [const DarkModeToggle()],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_sweep),
+            onPressed: _messages.length > 1 ? _clearChat : null,
+            tooltip: LanguageService.t('history_delete'),
+          ),
+          const DarkModeToggle(),
+        ],
       ),
       body: Directionality(
         textDirection: isRTL ? TextDirection.rtl : TextDirection.ltr,
@@ -326,6 +347,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
                         final msg = _messages[index];
                         if (msg['role'] == 'user') {
                           return _buildUserMessage(msg['text']!, isRTL);
+                        } else if (msg['role'] == 'retry') {
+                          return _buildRetryButton(msg['text']!, isRTL);
                         }
                         return _buildAiMessage(msg['text']!, isRTL);
                       },
@@ -339,6 +362,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   }
 
   Widget _buildUserMessage(String text, bool isRTL) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -348,7 +372,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF004D40),
+                color: isDark ? const Color(0xFF1565C0) : const Color(0xFF004D40),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: isRTL ? const Radius.circular(16) : const Radius.circular(4),
@@ -370,7 +394,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               color: Theme.of(context).colorScheme.outlineVariant,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person, color: Colors.white, size: 20),
+            child: Icon(Icons.person, color: isDark ? Colors.white70 : Colors.white, size: 20),
           ),
         ],
       ),
@@ -378,6 +402,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   }
 
   Widget _buildAiMessage(String text, bool isRTL) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -389,14 +414,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: isDark ? const Color(0xFF1565C0) : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.only(
                   topLeft: isRTL ? const Radius.circular(16) : const Radius.circular(4),
                   topRight: isRTL ? const Radius.circular(4) : const Radius.circular(16),
                   bottomLeft: const Radius.circular(16),
                   bottomRight: const Radius.circular(16),
                 ),
-                boxShadow: [
+                boxShadow: isDark ? [] : [
                   BoxShadow(
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     blurRadius: 6,
@@ -406,7 +431,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               ),
               child: SelectableText(
                 text,
-                style: TextStyle(fontSize: 14, height: 1.5, color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface),
               ),
             ),
           ),
@@ -415,7 +440,35 @@ class _AiChatScreenState extends State<AiChatScreen> {
     );
   }
 
+  Widget _buildRetryButton(String lastUserMessage, bool isRTL) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          OutlinedButton.icon(
+            onPressed: _loading ? null : () async {
+              setState(() {
+                _messages.removeWhere((m) => m['role'] == 'retry');
+                _loading = true;
+              });
+              await _getAIResponse(lastUserMessage);
+            },
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(LanguageService.t('ai_retry')),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.teal,
+              side: const BorderSide(color: Colors.teal),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTypingIndicator(bool isRTL) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -426,14 +479,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: isDark ? const Color(0xFF1565C0) : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.only(
                 topLeft: isRTL ? const Radius.circular(16) : const Radius.circular(4),
                 topRight: isRTL ? const Radius.circular(4) : const Radius.circular(16),
                 bottomLeft: const Radius.circular(16),
                 bottomRight: const Radius.circular(16),
               ),
-              boxShadow: [
+              boxShadow: isDark ? [] : [
                 BoxShadow(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   blurRadius: 6,
@@ -449,13 +502,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   height: 12,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.teal.shade400),
+                    valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.white70 : Colors.teal.shade400),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   LanguageService.t('ai_chat_think'),
-                  style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -505,10 +558,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
           ),
           const SizedBox(width: 8),
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [Color(0xFF00897B), Color(0xFF004D40)],
+                colors: Theme.of(context).brightness == Brightness.dark
+                    ? [Colors.blue.shade600, Colors.blue.shade800]
+                    : [const Color(0xFF00897B), const Color(0xFF004D40)],
               ),
             ),
             child: IconButton(
