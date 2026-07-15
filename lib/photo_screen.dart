@@ -299,7 +299,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Text(analysis, style: TextStyle(fontSize: 13, color: Colors.grey.shade800, height: 1.4)),
+          Text(analysis, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.4)),
         ],
       ),
     );

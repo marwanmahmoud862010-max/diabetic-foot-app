@@ -107,7 +107,6 @@ class _TouchTestScreenState extends State<TouchTestScreen> {
         centerTitle: true,
         actions: [const DarkModeToggle()],
       ),
-      backgroundColor: const Color(0xFFF0F4F3),
       body: Directionality(
         textDirection:
             LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,

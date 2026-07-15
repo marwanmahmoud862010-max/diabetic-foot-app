@@ -76,7 +76,6 @@ class _TipsScreenState extends State<TipsScreen> {
   Widget build(BuildContext context) {
     final isRTL = LanguageService.isRTL;
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F3),
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -212,9 +211,9 @@ class _TipsScreenState extends State<TipsScreen> {
                   const SizedBox(height: 6),
                   Text(
                     description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: Color(0xFF555555),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       height: 1.4,
                     ),
                   ),

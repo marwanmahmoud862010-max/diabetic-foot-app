@@ -274,7 +274,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   Widget build(BuildContext context) {
     final isRTL = LanguageService.isRTL;
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F3),
+
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -386,7 +386,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               ),
               child: SelectableText(
                 text,
-                style: const TextStyle(fontSize: 14, height: 1.5, color: Color(0xFF333333)),
+                style: TextStyle(fontSize: 14, height: 1.5, color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
           ),

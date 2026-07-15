@@ -58,6 +58,7 @@ class MyApp extends StatelessWidget {
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal, brightness: Brightness.light),
                 useMaterial3: true,
+                scaffoldBackgroundColor: const Color(0xFFF0F4F3),
                 appBarTheme: const AppBarTheme(
                   centerTitle: true,
                   backgroundColor: Colors.teal,
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
               darkTheme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal, brightness: Brightness.dark),
                 useMaterial3: true,
+                scaffoldBackgroundColor: const Color(0xFF121212),
                 appBarTheme: AppBarTheme(
                   centerTitle: true,
                   backgroundColor: Colors.teal.shade800,
@@ -77,11 +79,11 @@ class MyApp extends StatelessWidget {
                   thickness: 1,
                 ),
                 textTheme: const TextTheme(
-                  bodyLarge: TextStyle(fontWeight: FontWeight.w600),
-                  bodyMedium: TextStyle(fontWeight: FontWeight.w600),
-                  bodySmall: TextStyle(fontWeight: FontWeight.w600),
-                  labelLarge: TextStyle(fontWeight: FontWeight.w700),
-                  titleMedium: TextStyle(fontWeight: FontWeight.w700),
+                  bodyLarge: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                  bodyMedium: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                  bodySmall: TextStyle(fontWeight: FontWeight.w600, color: Colors.white70),
+                  labelLarge: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
+                  titleMedium: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
                 ),
               ),
               home: const SplashScreen(),

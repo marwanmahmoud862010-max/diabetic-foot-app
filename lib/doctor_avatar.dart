@@ -100,10 +100,10 @@ class DoctorChatBubble extends StatelessWidget {
                 children: [
                   Text(
                     message,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       height: 1.5,
-                      color: Color(0xFF333333),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   if (trailing != null) ...[
