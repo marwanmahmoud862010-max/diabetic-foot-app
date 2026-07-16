@@ -56,8 +56,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSnack(LanguageService.t('forgot_otp_send_failed'));
-      if (kDebugMode) debugPrint('sendOtp error: $e');
+      _showSnack(_extractError(e));
     }
   }
 
@@ -81,9 +80,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSnack(LanguageService.t('forgot_otp_send_failed'));
-      if (kDebugMode) debugPrint('resendOtp error: $e');
+      _showSnack(_extractError(e));
     }
+  }
+
+  String _extractError(dynamic e) {
+    final msg = e.toString();
+    if (msg.startsWith('Exception: Vercel: ')) {
+      return msg.substring('Exception: Vercel: '.length);
+    }
+    if (msg.contains('Vercel')) {
+      return LanguageService.t('forgot_otp_send_failed');
+    }
+    return LanguageService.t('network_error');
+  }
   }
 
   void _startCooldown() {

@@ -41,6 +41,9 @@ class EmailService {
         }
         return messageId;
       }
+      final errMsg = data['error'] as String? ?? 'Unknown error';
+      final detail = data['_detail'] as String? ?? '';
+      throw Exception('Vercel: $errMsg$detail');
     }
 
     throw Exception('Vercel (${response.statusCode}): ${response.body}');
