@@ -94,7 +94,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
     return LanguageService.t('network_error');
   }
-  }
 
   void _startCooldown() {
     _timer?.cancel();
