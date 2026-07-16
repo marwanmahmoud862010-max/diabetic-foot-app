@@ -1,5 +1,5 @@
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'marwanmahmoud862010@gmail.com';
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 2000, 4000];
 
@@ -32,8 +32,8 @@ function buildHtml(otp) {
 </html>`;
 }
 
-async function sendViaResend(email, otp) {
-  const url = 'https://api.resend.com/emails';
+async function sendViaBrevo(email, otp) {
+  const url = 'https://api.brevo.com/v3/smtp/email';
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -44,13 +44,13 @@ async function sendViaResend(email, otp) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${RESEND_API_KEY}`,
+          'api-key': BREVO_API_KEY,
         },
         body: JSON.stringify({
-          from: `StepGuard <${SENDER_EMAIL}>`,
-          to: [email],
+          sender: { name: 'StepGuard', email: BREVO_SENDER_EMAIL },
+          to: [{ email }],
           subject: 'Your OTP Code - StepGuard',
-          html: buildHtml(otp),
+          htmlContent: buildHtml(otp),
         }),
         signal: controller.signal,
       });
@@ -58,11 +58,11 @@ async function sendViaResend(email, otp) {
       clearTimeout(timeout);
       const data = await response.json();
 
-      console.log(`Resend attempt ${attempt}/${MAX_RETRIES}: ${response.status}`, data);
+      console.log(`Brevo attempt ${attempt}/${MAX_RETRIES}: ${response.status}`, data);
 
-      if (response.ok && data.id) {
-        console.log(`OTP sent successfully. messageId: ${data.id}`);
-        return data.id;
+      if (response.status === 201 && data.messageId) {
+        console.log(`OTP sent successfully. messageId: ${data.messageId}`);
+        return data.messageId;
       }
 
       if (response.status >= 500 && attempt < MAX_RETRIES) {
@@ -71,9 +71,9 @@ async function sendViaResend(email, otp) {
         continue;
       }
 
-      throw new Error(`Resend (${response.status}): ${JSON.stringify(data)}`);
+      throw new Error(`Brevo (${response.status}): ${JSON.stringify(data)}`);
     } catch (err) {
-      if (err.message && err.message.startsWith('Resend (')) throw err;
+      if (err.message && err.message.startsWith('Brevo (')) throw err;
       if (attempt < MAX_RETRIES) {
         console.log(`Error, retrying in ${RETRY_DELAYS[attempt - 1]}ms:`, err.message);
         await sleep(RETRY_DELAYS[attempt - 1]);
@@ -109,13 +109,13 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'A valid 6-digit OTP is required' });
   }
 
-  if (!RESEND_API_KEY) {
-    console.error('RESEND_API_KEY is not set');
+  if (!BREVO_API_KEY) {
+    console.error('BREVO_API_KEY is not set');
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
   try {
-    const messageId = await sendViaResend(email, otp);
+    const messageId = await sendViaBrevo(email, otp);
     return res.status(200).json({ success: true, messageId });
   } catch (error) {
     console.error('send-otp failed:', error.message);
