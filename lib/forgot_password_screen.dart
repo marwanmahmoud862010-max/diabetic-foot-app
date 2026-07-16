@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'route_transition.dart';
@@ -21,6 +23,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _otpSent = false;
   String _otpCode = '';
   String _email = '';
+  int _cooldownSeconds = 0;
+  Timer? _timer;
+
+  static const int _cooldownDuration = 60;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<void> _sendOtp() async {
     final email = emailController.text.trim();
@@ -35,16 +46,65 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _loading = true);
     try {
       _otpCode = EmailService.generateOtp();
-      await EmailService.sendOtpEmail(email, _otpCode);
+      final messageId = await EmailService.sendOtpEmail(email, _otpCode);
       if (!mounted) return;
       _email = email;
       setState(() { _otpSent = true; _loading = false; });
       _showSnack('${LanguageService.t('forgot_otp_sent')} $email');
+      _startCooldown();
+      if (kDebugMode) debugPrint('OTP email sent, messageId: $messageId');
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSnack('${LanguageService.t('network_error')}: $e');
+      if (e.toString().contains('Vercel')) {
+        _showSnack(LanguageService.t('forgot_otp_send_failed'));
+      } else {
+        _showSnack('${LanguageService.t('network_error')}: $e');
+      }
     }
+  }
+
+  Future<void> _resendOtp() async {
+    final email = _email;
+    if (email.isEmpty) return;
+    if (!await ConnectivityService.check()) {
+      _showSnack(LanguageService.t('offline_desc'));
+      return;
+    }
+    setState(() => _loading = true);
+    try {
+      _otpCode = EmailService.generateOtp();
+      final messageId = await EmailService.sendOtpEmail(email, _otpCode);
+      if (!mounted) return;
+      setState(() => _loading = false);
+      otpController.clear();
+      _showSnack('${LanguageService.t('forgot_otp_sent')} $email');
+      _startCooldown();
+      if (kDebugMode) debugPrint('OTP resent, new messageId: $messageId');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      if (e.toString().contains('Vercel')) {
+        _showSnack(LanguageService.t('forgot_otp_send_failed'));
+      } else {
+        _showSnack('${LanguageService.t('network_error')}: $e');
+      }
+    }
+  }
+
+  void _startCooldown() {
+    _timer?.cancel();
+    _cooldownSeconds = _cooldownDuration;
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      setState(() {
+        _cooldownSeconds--;
+        if (_cooldownSeconds <= 0) {
+          _cooldownSeconds = 0;
+          t.cancel();
+        }
+      });
+    });
   }
 
   Future<void> _verifyOtp() async {
@@ -70,6 +130,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     emailController.dispose();
     otpController.dispose();
     super.dispose();
@@ -77,12 +138,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      backgroundColor: cs.primaryContainer,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.primary),
+          icon: Icon(Icons.arrow_back, color: cs.primary),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [const DarkModeToggle()],
@@ -96,14 +158,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 Container(
                   width: 90, height: 90,
-                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(45)),
+                  decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(45)),
                   child: const Icon(Icons.lock_reset, color: Colors.white, size: 48),
                 ),
                 const SizedBox(height: 24),
                 Text(LanguageService.t('forgot_password_title'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(LanguageService.t(_otpSent ? 'forgot_password_subtitle_otp' : 'forgot_password_subtitle_send'),
-                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant)),
                 const SizedBox(height: 32),
                 if (!_otpSent) ...[
                   TextField(
@@ -112,11 +174,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: InputDecoration(
                       labelText: LanguageService.t('email_label'),
                       hintText: LanguageService.t('email_hint'),
-                      prefixIcon: Icon(Icons.email, color: Theme.of(context).colorScheme.primary),
-                      filled: true, fillColor: Theme.of(context).colorScheme.surface,
+                      prefixIcon: Icon(Icons.email, color: cs.primary),
+                      filled: true, fillColor: cs.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        borderSide: BorderSide(color: cs.outline),
                       ),
                     ),
                   ),
@@ -127,11 +189,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: InputDecoration(
                       labelText: LanguageService.t('otp_label'),
                       hintText: LanguageService.t('otp_hint'),
-                      prefixIcon: Icon(Icons.lock, color: Theme.of(context).colorScheme.primary),
-                      filled: true, fillColor: Theme.of(context).colorScheme.surface,
+                      prefixIcon: Icon(Icons.lock, color: cs.primary),
+                      filled: true, fillColor: cs.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        borderSide: BorderSide(color: cs.outline),
                       ),
                     ),
                   ),
@@ -142,7 +204,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: ElevatedButton(
                     onPressed: _loading ? null : (_otpSent ? _verifyOtp : _sendOtp),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      backgroundColor: cs.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -152,6 +214,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         : Text(_otpSent ? LanguageService.t('login_button') : LanguageService.t('forgot_send_code'), style: const TextStyle(fontSize: 18)),
                   ),
                 ),
+                if (_otpSent) ...[
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _cooldownSeconds > 0 || _loading ? null : _resendOtp,
+                    child: Text(
+                      _cooldownSeconds > 0
+                          ? LanguageService.t('forgot_resend_in').replaceFirst('%s', '$_cooldownSeconds')
+                          : LanguageService.t('forgot_resend_code'),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _cooldownSeconds > 0 ? cs.onSurfaceVariant : cs.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

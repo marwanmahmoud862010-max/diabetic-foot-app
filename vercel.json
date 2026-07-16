@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/send-otp.js": {
+      "maxDuration": 30
+    }
+  }
+}
