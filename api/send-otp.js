@@ -1,9 +1,10 @@
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'marwanmahmoud862010@gmail.com';
-const MAX_RETRIES = 2;
-const RETRY_DELAYS = [1000, 3000];
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [1000, 2000, 4000];
 
 function buildHtml(otp) {
+  const code = otp.split('').join('</span><span style="font-size:36px;font-weight:bold;letter-spacing:6px;color:#1565C0;">');
   return `<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
@@ -18,7 +19,7 @@ function buildHtml(otp) {
           <h2 style="color:#333333;margin:0 0 16px 0;font-size:20px;">Password Reset OTP</h2>
           <p style="color:#666666;margin:0 0 24px 0;font-size:14px;">Your verification code is:</p>
           <div style="background-color:#f0f4ff;border:2px dashed #1565C0;border-radius:8px;padding:16px;margin:0 auto 24px auto;max-width:260px;">
-            <span style="font-size:36px;font-weight:bold;letter-spacing:6px;color:#1565C0;">${otp}</span>
+            <span style="font-size:36px;font-weight:bold;letter-spacing:6px;color:#1565C0;">${code}</span>
           </div>
           <p style="color:#999999;margin:0;font-size:12px;">This code is valid for 15 minutes.</p>
         </td></tr>
@@ -32,30 +33,10 @@ function buildHtml(otp) {
 </html>`;
 }
 
-async function checkSenderVerified() {
-  try {
-    const response = await fetch('https://api.brevo.com/v3/senders', {
-      headers: { 'api-key': BREVO_API_KEY },
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('Failed to list senders:', response.status, data);
-      return { verified: false, reason: `Brevo status ${response.status}: ${data.message || 'Unknown error'}` };
-    }
-    const senders = data.senders || [];
-    const sender = senders.find((s) => s.email === BREVO_SENDER_EMAIL);
-    if (!sender) {
-      return { verified: false, reason: `Sender "${BREVO_SENDER_EMAIL}" is not registered in Brevo. Add it at brevo.com/senders` };
-    }
-    return { verified: sender.verified === true, reason: sender.verified ? '' : `Sender "${BREVO_SENDER_EMAIL}" is not verified. Check verification email from Brevo.` };
-  } catch (err) {
-    console.error('Sender check error:', err.message);
-    return { verified: true, reason: '' };
-  }
-}
-
 async function sendViaBrevo(email, otp, requestId) {
   const url = 'https://api.brevo.com/v3/smtp/email';
+  const timestamp = Date.now();
+  const subject = `Your OTP Code - StepGuard [${timestamp}]`;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -65,21 +46,14 @@ async function sendViaBrevo(email, otp, requestId) {
       const body = {
         sender: { name: 'StepGuard', email: BREVO_SENDER_EMAIL },
         to: [{ email }],
-        subject: `Your OTP Code - StepGuard (ref: ${requestId})`,
+        subject,
         htmlContent: buildHtml(otp),
         headers: {
           'X-OTP-Request-ID': requestId,
-          'X-OTP-Email': email,
+          'X-OTP-Sent-At': new Date(timestamp).toISOString(),
         },
         tags: ['otp', 'password-reset'],
       };
-
-      console.log(`Brevo request (attempt ${attempt}/${MAX_RETRIES}):`, {
-        requestId,
-        to: email,
-        sender: BREVO_SENDER_EMAIL,
-        subject: body.subject,
-      });
 
       const response = await fetch(url, {
         method: 'POST',
@@ -94,25 +68,25 @@ async function sendViaBrevo(email, otp, requestId) {
       clearTimeout(timeout);
       const data = await response.json();
 
-      console.log(`Brevo response: status=${response.status} body=${JSON.stringify(data)}`);
+      console.log(`[${requestId}] Brevo attempt ${attempt}/${MAX_RETRIES}: status=${response.status} body=${JSON.stringify(data)}`);
 
       if (response.status === 201 && data.messageId) {
-        console.log(`OTP sent. messageId=${data.messageId} requestId=${requestId}`);
-        return data.messageId;
+        console.log(`[${requestId}] OTP queued successfully. messageId=${data.messageId}`);
+        return { messageId: data.messageId, brevoStatusCode: response.status };
       }
 
-      const errMsg = `Brevo (${response.status}): ${JSON.stringify(data)}`;
-      if (response.status >= 500 && attempt < MAX_RETRIES) {
-        console.log(`5xx, retrying in ${RETRY_DELAYS[attempt - 1]}ms`);
-        await sleep(RETRY_DELAYS[attempt - 1]);
-        continue;
+      // 4xx errors (except 429 rate-limit) are non-retriable
+      if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+        throw new Error(`Brevo (${response.status}): ${data.message || JSON.stringify(data)}`);
       }
 
-      throw new Error(errMsg);
+      // 5xx or 429: retry
+      console.log(`[${requestId}] Retriable error, retry ${attempt}/${MAX_RETRIES} in ${RETRY_DELAYS[attempt - 1]}ms`);
+      await sleep(RETRY_DELAYS[attempt - 1]);
     } catch (err) {
       if (err.message && err.message.startsWith('Brevo (')) throw err;
       if (attempt < MAX_RETRIES) {
-        console.log(`Error, retrying in ${RETRY_DELAYS[attempt - 1]}ms:`, err.message);
+        console.log(`[${requestId}] Error, retry ${attempt}/${MAX_RETRIES} in ${RETRY_DELAYS[attempt - 1]}ms: ${err.message}`);
         await sleep(RETRY_DELAYS[attempt - 1]);
         continue;
       }
@@ -155,24 +129,19 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Server configuration error: BREVO_API_KEY missing' });
   }
 
-  const senderCheck = await checkSenderVerified();
-  if (!senderCheck.verified) {
-    console.error('Sender verification failed:', senderCheck.reason);
-    return res.status(500).json({
-      success: false,
-      error: senderCheck.reason,
-      _detail: 'Sender not verified in Brevo. Go to https://app.brevo.com/senders, add/verify this email.',
-    });
-  }
-
   const requestId = generateRequestId();
-  console.log(`Starting OTP send requestId=${requestId} email=${email}`);
+  console.log(`[${requestId}] Starting OTP send to=${email}`);
 
   try {
-    const messageId = await sendViaBrevo(email, otp, requestId);
-    return res.status(200).json({ success: true, messageId, requestId });
+    const result = await sendViaBrevo(email, otp, requestId);
+    return res.status(200).json({ success: true, messageId: result.messageId, requestId });
   } catch (error) {
-    console.error(`send-otp failed. requestId=${requestId} error=${error.message}`);
-    return res.status(500).json({ success: false, error: error.message, requestId });
+    console.error(`[${requestId}] send-otp failed: ${error.message}`);
+    return res.status(200).json({
+      success: false,
+      error: error.message,
+      requestId,
+      _detail: 'Check Brevo dashboard at https://app.brevo.com for sender status and quota.',
+    });
   }
 };
