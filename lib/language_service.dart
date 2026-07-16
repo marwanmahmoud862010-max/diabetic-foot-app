@@ -315,7 +315,7 @@ class LanguageService {
     'forgot_otp_sent': {'ar': 'تم إرسال الكود إلى', 'en': 'Code sent to', 'fr': 'Code envoyé à'},
     'forgot_password_email_sent': {'ar': 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', 'en': 'Password reset link sent to your email', 'fr': 'Lien de réinitialisation du mot de passe envoyé à votre email'},
     'forgot_email_failed': {'ar': 'فشل إرسال البريد. تحقق من اتصالك وحاول مرة أخرى.', 'en': 'Failed to send email. Check your connection and try again.', 'fr': "Échec de l'envoi de l'email. Vérifiez votre connexion et réessayez."},
-    'forgot_otp_send_failed': {'ar': 'تعذر إرسال الكود. خدمة البريد رفضت الطلب. تحقق من اتصال Vercel.', 'en': 'Could not send code. Email service rejected the request. Check Vercel logs.', 'fr': 'Impossible d\'envoyer le code. Le service de messagerie a rejeté la demande. Vérifiez les logs Vercel.'},
+    'forgot_otp_send_failed': {'ar': 'تعذر إرسال الكود. تأكد من توثيق المرسل في Brevo.', 'en': 'Could not send code. Verify sender is confirmed in your Brevo dashboard.', 'fr': 'Impossible d\'envoyer le code. Vérifiez que l\'expéditeur est confirmé dans Brevo.'},
     'otp_label': {'ar': 'OTP', 'en': 'OTP', 'fr': 'OTP'},
     'otp_hint': {'ar': 'أدخل الكود', 'en': 'Enter code', 'fr': 'Entrez le code'},
     'forgot_resend_code': {'ar': 'إعادة الإرسال', 'en': 'Resend Code', 'fr': 'Renvoyer le code'},
