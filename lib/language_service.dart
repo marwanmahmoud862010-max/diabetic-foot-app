@@ -329,7 +329,8 @@ class LanguageService {
     'ai_chat_greeting': {'ar': 'مرحباً! أنا SoleMate، رفيق قدمك الذكي. أسألني أي سؤال عن العناية بالقدم السكري وسأجيبك بالتفصيل.', 'en': 'Hello! I am SoleMate, your smart foot companion. Ask me anything about diabetic foot care and I will answer you in detail.', 'fr': 'Bonjour! Je suis SoleMate, votre compagnon intelligent pour les pieds. Posez-moi n\'importe quelle question sur le soin du pied diabétique et je vous répondrai en détail.'},
     'ai_chat_think': {'ar': 'الدكتور بيفكر...', 'en': 'Doctor is thinking...', 'fr': 'Le docteur réfléchit...'},
     'open_email_app': {'ar': 'فتح تطبيق البريد', 'en': 'Open Email App', 'fr': 'Ouvrir l\'application Email'},
-    'dialog_later': {'ar': 'لاحقاً', 'en': 'Later', 'fr': 'Plus tard'},
+    'dialog_later': {'ar': 'إغلاق', 'en': 'Close', 'fr': 'Fermer'},
+    'dialog_check_email': {'ar': 'تحقق من بريدك', 'en': 'Check your email', 'fr': 'Vérifiez vos emails'},
     'no_email_app': {'ar': 'لم يتم العثور على تطبيق بريد إلكتروني على الجهاز', 'en': 'No email app found on your device', 'fr': 'Aucune application de messagerie trouvée sur votre appareil'},
   };
 }
