@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:open_mail_app/open_mail_app.dart';
 import 'language_service.dart';
 import 'connectivity_service.dart';
 import 'widgets/dark_mode_toggle.dart';
@@ -37,7 +38,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       if (!mounted) return;
       setState(() { _loading = false; _done = true; });
-      _showSnack(LanguageService.t('forgot_password_email_sent'));
+      _showSuccessDialog();
     } on FirebaseAuthException catch (e) {
       setState(() => _loading = false);
       String msg;
@@ -60,6 +61,65 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       setState(() => _loading = false);
       _showSnack(LanguageService.t('network_error'));
     }
+  }
+
+  Future<void> _openMailApp() async {
+    final result = await OpenMailApp.openMailApp();
+    if (!result.didOpen && !result.canOpen) {
+      _showSnack(LanguageService.t('no_email_app'));
+    }
+  }
+
+  void _showSuccessDialog() {
+    final cs = Theme.of(context).colorScheme;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: cs.surface,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 70, height: 70,
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.mark_email_unread, color: cs.primary, size: 36),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              LanguageService.t('forgot_password_title'),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              LanguageService.t('forgot_password_email_sent'),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant, height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () { Navigator.pop(ctx); },
+            child: Text(LanguageService.t('dialog_later'), style: TextStyle(color: cs.onSurfaceVariant)),
+          ),
+          FilledButton.icon(
+            onPressed: () { Navigator.pop(ctx); _openMailApp(); },
+            icon: const Icon(Icons.mail_outline, size: 18),
+            label: Text(LanguageService.t('open_email_app')),
+            style: FilledButton.styleFrom(
+              backgroundColor: cs.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSnack(String msg) {
