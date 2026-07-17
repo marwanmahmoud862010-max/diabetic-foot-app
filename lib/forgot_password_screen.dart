@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:open_mail_app/open_mail_app.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'language_service.dart';
 import 'connectivity_service.dart';
 import 'widgets/dark_mode_toggle.dart';
@@ -64,8 +64,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _openMailApp() async {
-    final result = await OpenMailApp.openMailApp();
-    if (!result.didOpen && !result.canOpen) {
+    final uri = Uri.parse('mailto:');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication);
+    } else {
       _showSnack(LanguageService.t('no_email_app'));
     }
   }
