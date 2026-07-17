@@ -312,7 +312,7 @@ class LanguageService {
     'forgot_send_again': {'ar': 'إعادة الإرسال', 'en': 'Send Again', 'fr': 'Renvoyer'},
     'forgot_email_empty': {'ar': 'برجاء إدخال إيميل صحيح', 'en': 'Please enter a valid email', 'fr': 'Veuillez entrer un email valide'},
     'forgot_user_not_found': {'ar': 'لا يوجد حساب بهذا البريد الإلكتروني', 'en': 'No account found with this email address', 'fr': 'Aucun compte trouvé avec cet email'},
-    'forgot_password_email_sent': {'ar': 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', 'en': "We've sent a password reset link to your email. Please check your inbox and Spam folder.", 'fr': "Nous avons envoyé un lien de réinitialisation à votre email. Vérifiez votre boîte de réception et les spams."},
+    'forgot_password_email_sent': {'ar': 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.\n\nتحقق من صندوق الوارد. إذا لم تجده، تحقق من البريد المزعج.', 'en': "We've sent a password reset link to your email address.\n\nPlease check your inbox. If you don't see it, check your Spam folder.", 'fr': "Nous avons envoyé un lien de réinitialisation à votre adresse email.\n\nVérifiez votre boîte de réception. Si vous ne le voyez pas, vérifiez vos spams."},
     'forgot_email_failed': {'ar': 'فشل إرسال البريد. تحقق من اتصالك وحاول مرة أخرى.', 'en': 'Failed to send reset email. Check your connection and try again.', 'fr': "Échec de l'envoi. Vérifiez votre connexion et réessayez."},
     'setup_profile_later': {'ar': 'تخطي الآن', 'en': 'Skip for now', 'fr': 'Passer pour le moment'},
     'setup_profile_title': {'ar': 'كمل بيانات بروفايلك', 'en': 'Set Up Your Profile', 'fr': 'Configurez votre profil'},
