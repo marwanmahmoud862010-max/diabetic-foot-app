@@ -269,10 +269,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _logout() async {
-    await FirebaseAuth.instance.signOut();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('is_logged_in');
-    await prefs.remove('email');
+    await prefs.clear();
+    await FirebaseAuth.instance.signOut();
     if (!mounted) return;
     pushReplacementPage(context, const LoginScreen());
   }
