@@ -44,16 +44,39 @@ function getApp() {
   // Lazy require so a missing dependency only breaks calls that need Admin.
   const admin = require('firebase-admin');
 
+  let credential;
   try {
+    credential = admin.credential.cert({ projectId, clientEmail, privateKey });
     cachedApp = admin.apps[0]
       ? admin.app()
       : admin.initializeApp({
-          credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
+          credential,
         });
   } catch (error) {
     console.error('[firebase-admin] initializeApp failed:', error.message);
     throw error;
   }
+
+  // TEMPORARY diagnostic. Runs once per cold start. Logs only the outcome and
+  // Google's error code/message. Never logs the token, private key, or any
+  // credential material.
+  credential
+    .getAccessToken()
+    .then((token) => {
+      console.log('[firebase-admin] credential_token_test: success');
+      console.log(
+        '[firebase-admin] token_issued: true, token_length:',
+        token && typeof token.access_token === 'string' ? token.access_token.length : 0,
+      );
+    })
+    .catch((error) => {
+      console.error('[firebase-admin] credential_token_test: failed');
+      console.error('[firebase-admin] google_error_code:', error && error.code);
+      console.error(
+        '[firebase-admin] google_error_message:',
+        String((error && error.message) || error).split('\n')[0],
+      );
+    });
 
   return cachedApp;
 }
