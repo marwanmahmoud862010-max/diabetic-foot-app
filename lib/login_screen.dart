@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _obscurePassword = true;
 
-  bool get _isFormValid => emailController.text.trim().isNotEmpty && passwordController.text.trim().isNotEmpty;
+  bool get _isFormValid => emailController.text.trim().isNotEmpty && passwordController.text.isNotEmpty;
 
   @override
   void initState() {
@@ -48,33 +48,14 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        password: passwordController.text,
       );
       if (!mounted) return;
       pushReplacementPage(context, const HomeScreen());
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        try {
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-          );
-          if (!mounted) return;
-          pushReplacementPage(context, const HomeScreen());
-        } on FirebaseAuthException catch (e2) {
-          if (!mounted) return;
-          setState(() => _loading = false);
-          if (e2.code == 'email-already-in-use') {
-            _showSnack(LanguageService.t('login_wrong_password'));
-          } else {
-            _showSnack(_friendlyError(e2));
-          }
-        }
-      } else {
-        if (!mounted) return;
-        setState(() => _loading = false);
-        _showSnack(_friendlyError(e));
-      }
+      if (!mounted) return;
+      setState(() => _loading = false);
+      _showSnack(_friendlyError(e));
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -84,14 +65,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _friendlyError(FirebaseAuthException e) {
     switch (e.code) {
-      case 'invalid-credential':
+      case 'user-not-found':
       case 'wrong-password':
+      case 'invalid-credential':
       case 'invalid-email':
-        return LanguageService.t('login_wrong_password');
+        return LanguageService.t('login_invalid_credentials');
       case 'too-many-requests':
+      case 'quota-exceeded':
         return LanguageService.t('login_too_many_requests');
       case 'weak-password':
         return LanguageService.t('login_weak_password');
+      case 'network-request-failed':
+        return LanguageService.t('network_error');
+      case 'operation-not-allowed':
+        return LanguageService.t('auth_provider_disabled');
       default:
         return e.message ?? LanguageService.t('login_error_generic');
     }

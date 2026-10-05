@@ -137,17 +137,19 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
   }
 
   Widget _buildYesNo(String question, bool? value, Function(bool) onSelect) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(question, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+          Text(question, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: cs.onSurface)),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -157,14 +159,23 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: value == true ? Colors.red.shade100 : Colors.white,
+                      color: value == true
+                          ? Colors.red.withValues(alpha: isDark ? 0.35 : 0.12)
+                          : cs.surface,
                       border: Border.all(
-                        color: value == true ? Colors.red : Theme.of(context).colorScheme.outline,
+                        color: value == true ? Colors.red : cs.outline,
                         width: value == true ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(LanguageService.t('risk_assessment_yes'), textAlign: TextAlign.center),
+                    child: Text(
+                      LanguageService.t('risk_assessment_yes'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: value == true ? Colors.red : cs.onSurface,
+                        fontWeight: value == true ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -175,14 +186,23 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: value == false ? Colors.green.shade100 : Colors.white,
+                      color: value == false
+                          ? Colors.green.withValues(alpha: isDark ? 0.35 : 0.12)
+                          : cs.surface,
                       border: Border.all(
-                        color: value == false ? Colors.green : Theme.of(context).colorScheme.outline,
+                        color: value == false ? Colors.green : cs.outline,
                         width: value == false ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(LanguageService.t('risk_assessment_no'), textAlign: TextAlign.center),
+                    child: Text(
+                      LanguageService.t('risk_assessment_no'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: value == false ? Colors.green : cs.onSurface,
+                        fontWeight: value == false ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -205,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     DropdownMenuItem(value: 'type_2', child: Text(LanguageService.t('type_2'))),
                     DropdownMenuItem(value: 'gestational', child: Text(LanguageService.t('gestational'))),
                   ],
-                  onChanged: (val) => setState(() => selectedType = val!),
+                  onChanged: (val) => setState(() => selectedType = val ?? 'type_2'),
                 ),
               ),
             ),

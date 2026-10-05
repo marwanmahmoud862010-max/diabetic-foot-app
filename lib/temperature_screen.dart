@@ -143,6 +143,7 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
 
   void _checkTemperatures() async {
     bool danger = false;
+    bool anyFilled = false;
     List<String> warnings = [];
 
     final pairs = [
@@ -152,16 +153,29 @@ class _TemperatureScreenState extends State<TemperatureScreen> {
     ];
 
     for (var pair in pairs) {
-      final right = double.tryParse(controllers[pair[0]]!.text);
-      final left = double.tryParse(controllers[pair[1]]!.text);
-      if (right != null && left != null) {
-        final diff = (right - left).abs();
-        if (diff > 2.2) {
-          danger = true;
-          warnings.add(
-              '${pair[2]}: ${LanguageService.t('temp_diff')} ${diff.toStringAsFixed(1)} ${LanguageService.t('degree')} ⚠️');
-        }
+      final rightText = controllers[pair[0]]!.text.trim();
+      final leftText = controllers[pair[1]]!.text.trim();
+      if (rightText.isEmpty || leftText.isEmpty) continue;
+      final right = double.tryParse(rightText);
+      final left = double.tryParse(leftText);
+      if (right == null || left == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('enter_valid_number'))));
+        return;
       }
+      anyFilled = true;
+      final diff = (right - left).abs();
+      if (diff > 2.2) {
+        danger = true;
+        warnings.add(
+            '${pair[2]}: ${LanguageService.t('temp_diff')} ${diff.toStringAsFixed(1)} ${LanguageService.t('degree')} ⚠️');
+      }
+    }
+
+    if (!anyFilled) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(LanguageService.t('number_only'))));
+      return;
     }
 
     // بنخزّن الكود عشان يتترجم في الهوم والسجل

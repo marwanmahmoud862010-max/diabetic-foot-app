@@ -14,7 +14,6 @@ class HistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
-  List<Map<String, String>> _filtered = [];
   final _searchCtrl = TextEditingController();
   String _typeFilter = 'all';
 
@@ -24,10 +23,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   void initState() {
     super.initState();
     LanguageService.currentLang.addListener(_onLangChanged);
-    _searchCtrl.addListener(_applyFilter);
+    _searchCtrl.addListener(_onSearchChanged);
   }
 
   void _onLangChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onSearchChanged() {
     if (mounted) setState(() {});
   }
 
@@ -38,22 +41,19 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     super.dispose();
   }
 
-  void _applyFilter() {
-    final history = ref.read(fullHistoryProvider).asData?.value ?? [];
+  List<Map<String, String>> _filterHistory(List<Map<String, String>> history) {
     final query = _searchCtrl.text.toLowerCase();
-    setState(() {
-      _filtered = history.where((item) {
-        if (_typeFilter != 'all' && item['type'] != _typeFilter) return false;
-        if (query.isEmpty) return true;
-        final type = LanguageService.t(item['type'] ?? '').toLowerCase();
-        final result = LanguageService.t(item['result'] ?? '').toLowerCase();
-        final date = (item['date'] ?? '').toLowerCase();
-        return type.contains(query) || result.contains(query) || date.contains(query);
-      }).toList();
-    });
+    return history.where((item) {
+      if (_typeFilter != 'all' && item['type'] != _typeFilter) return false;
+      if (query.isEmpty) return true;
+      final type = LanguageService.t(item['type'] ?? '').toLowerCase();
+      final result = LanguageService.t(item['result'] ?? '').toLowerCase();
+      final date = (item['date'] ?? '').toLowerCase();
+      return type.contains(query) || result.contains(query) || date.contains(query);
+    }).toList();
   }
 
-  Future<void> _deleteItem(int index) async {
+  Future<void> _deleteItem(int realIndex) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => Directionality(
@@ -69,12 +69,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     );
     if (confirm != true) return;
 
-    final history = ref.read(fullHistoryProvider).asData?.value ?? [];
     final prefs = await SharedPreferences.getInstance();
     final List<String> raw = prefs.getStringList('full_history') ?? [];
-    final reversedIndex = history.length - 1 - index;
-    raw.removeAt(reversedIndex);
-    await prefs.setStringList('full_history', raw);
+    if (realIndex >= 0 && realIndex < raw.length) {
+      raw.removeAt(realIndex);
+      await prefs.setStringList('full_history', raw);
+    }
     ref.invalidate(fullHistoryProvider);
   }
 
@@ -151,7 +151,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                       onSelected: (_) {
                         setState(() => _typeFilter = type);
-                        _applyFilter();
                       },
                     ),
                   );
@@ -163,10 +162,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 loading: () => ErrorHandler.loadingWidget(),
                 error: (e, _) => Center(child: Text('$e', style: const TextStyle(color: Colors.red))),
                 data: (history) {
-                  if (_filtered.isEmpty && _searchCtrl.text.isEmpty && _typeFilter == 'all') {
-                    _filtered = history;
-                  }
-                  if (_filtered.isEmpty) {
+                  final filtered = _filterHistory(history);
+                  if (filtered.isEmpty) {
                     return Center(
                       child: Text(
                         LanguageService.t('no_history'),
@@ -181,11 +178,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     },
                     child: ListView.builder(
                       padding: const EdgeInsets.all(16),
-                      itemCount: _filtered.length,
+                      itemCount: filtered.length,
                       itemBuilder: (context, index) {
-                        final item = _filtered[index];
+                        final item = filtered[index];
                         final isGood = _isGood(item['result'] ?? '');
                         final d = item['date'] ?? '';
+                        final cs = Theme.of(context).colorScheme;
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        final base = isGood ? Colors.green : Colors.red;
                         return Dismissible(
                           key: ValueKey('${item['date']}_$index'),
                           direction: DismissDirection.endToStart,
@@ -206,24 +206,24 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: isGood ? Colors.green.shade50 : Colors.red.shade50,
+                              color: base.withValues(alpha: isDark ? 0.15 : 0.08),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: isGood ? Colors.green.shade200 : Colors.red.shade200),
+                              border: Border.all(color: base.withValues(alpha: isDark ? 0.4 : 0.3)),
                             ),
                             child: Row(
                               children: [
-                                Icon(isGood ? Icons.check_circle : Icons.warning, color: isGood ? Colors.green : Colors.red),
+                                Icon(isGood ? Icons.check_circle : Icons.warning, color: base),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(_typeLabel(item['type'] ?? ''), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                      Text(_resultLabel(item['result'] ?? ''), style: TextStyle(fontSize: 13, color: isGood ? Colors.green.shade800 : Colors.red.shade800)),
+                                      Text(_typeLabel(item['type'] ?? ''), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: cs.onSurface)),
+                                      Text(_resultLabel(item['result'] ?? ''), style: TextStyle(fontSize: 13, color: isDark ? base.shade300 : base.shade800)),
                                     ],
                                   ),
                                 ),
-                                Text(d.length >= 10 ? d.substring(0, 10) : d, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                Text(d.length >= 10 ? d.substring(0, 10) : d, style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
                               ],
                             ),
                           ),

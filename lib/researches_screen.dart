@@ -93,7 +93,7 @@ class _ResearchesScreenState extends State<ResearchesScreen> {
         textDirection: LanguageService.isRTL ? TextDirection.rtl : TextDirection.ltr,
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: 10,
+          itemCount: _researches.length,
           itemBuilder: (context, index) => _buildResearchCard(index),
         ),
       ),

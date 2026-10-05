@@ -153,6 +153,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
       return;
     }
     String? result;
+    String? errorMsg;
     for (int attempt = 0; attempt < 2; attempt++) {
       if (attempt > 0) await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
@@ -165,7 +166,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                 'Content-Type': 'application/json',
               },
               body: jsonEncode({
-                'model': 'meta-llama/llama-4-scout-17b-16e-instruct',
+                'model': 'qwen/qwen3.8-27b',
                 'messages': [
                   {'role': 'user', 'content': [
                     {'type': 'text', 'text': LanguageService.t('photo_ai_prompt')},
@@ -181,14 +182,26 @@ class _AiChatScreenState extends State<AiChatScreen> {
           final body = jsonDecode(response.body);
           result = body['choices']?[0]?['message']?['content'] as String?;
           break;
+        } else {
+          try {
+            final err = jsonDecode(response.body);
+            errorMsg = 'HTTP ${response.statusCode}: ${err['error']?['message'] ?? 'Unknown error'}';
+          } catch (_) {
+            errorMsg = 'HTTP ${response.statusCode}';
+          }
         }
-      } catch (_) {}
+      } catch (e) {
+        errorMsg = LanguageService.t('ai_connection_error');
+      }
     }
     if (!mounted) return;
     if (result != null) {
       setState(() => _messages.add({'role': 'model', 'text': result!.trim()}));
     } else {
-      setState(() => _messages.add({'role': 'model', 'text': LanguageService.t('ai_no_response')}));
+      setState(() {
+        _messages.add({'role': 'model', 'text': errorMsg ?? LanguageService.t('ai_no_response')});
+        _messages.add({'role': 'retry', 'text': LanguageService.t('attach_sent_media')});
+      });
     }
     _loading = false;
     _scrollToBottom();
@@ -251,6 +264,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
         {'role': 'system', 'content': _systemPrompt},
       ];
       for (final msg in _messages) {
+        if (msg['role'] == 'retry') continue;
         messages.add({'role': msg['role']! == 'user' ? 'user' : 'assistant', 'content': msg['text']!});
       }
 

@@ -12,6 +12,7 @@ class TipsScreen extends StatefulWidget {
 }
 
 class _TipsScreenState extends State<TipsScreen> {
+  Timer? _typingTimer;
   final List<Map<String, dynamic>> tips = [
     {
       'icon': Icons.do_not_step,
@@ -57,7 +58,7 @@ class _TipsScreenState extends State<TipsScreen> {
   void initState() {
     super.initState();
     LanguageService.currentLang.addListener(_onLangChanged);
-    Timer(const Duration(seconds: 2), () {
+    _typingTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) setState(() => _showTyping = false);
     });
   }
@@ -68,6 +69,7 @@ class _TipsScreenState extends State<TipsScreen> {
 
   @override
   void dispose() {
+    _typingTimer?.cancel();
     LanguageService.currentLang.removeListener(_onLangChanged);
     super.dispose();
   }

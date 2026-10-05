@@ -15,6 +15,11 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool _navigating = false;
+  @override
+  void dispose() {
+    _navigating = true;
+    super.dispose();
+  }
 
   Future<void> _navigate() async {
     if (_navigating) return;

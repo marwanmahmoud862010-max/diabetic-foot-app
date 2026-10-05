@@ -193,7 +193,7 @@ class _TouchTestScreenState extends State<TouchTestScreen> {
                   decoration: BoxDecoration(
                     color: results[key] == true
                         ? Colors.green.shade100
-                        : Colors.white,
+                        : Theme.of(context).colorScheme.surface,
                       border: Border.all(
                           color: results[key] == true
                               ? Colors.green

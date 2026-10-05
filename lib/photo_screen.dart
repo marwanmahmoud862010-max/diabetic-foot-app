@@ -136,6 +136,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   Widget _buildFootPhoto(String title, String foot, Color color, List<Map<String, String>> photos) {
     final latest = photos.isNotEmpty ? photos.first : <String, String>{};
     final data = latest['data'] ?? '';
+    final url = latest['url'] ?? '';
     final id = latest['id'] ?? '';
 
     return Column(
@@ -156,7 +157,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () => _showPicker(foot, title),
-          onLongPress: data.isNotEmpty ? () => _showDeleteDialog(foot, id) : null,
+          onLongPress: (data.isNotEmpty || url.isNotEmpty) ? () => _showDeleteDialog(foot, id) : null,
           child: Container(
             height: 200,
             width: double.infinity,
@@ -165,7 +166,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: color.withValues(alpha: 0.3)),
             ),
-            child: data.isEmpty
+            child: (data.isEmpty && url.isEmpty)
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -179,7 +180,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.memory(base64Decode(data), fit: BoxFit.cover),
+                        child: _buildPhotoImage(data, url: url),
                       ),
                       if (photos.length > 1)
                         Positioned(
@@ -236,13 +237,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
                       const SizedBox(height: 4),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Builder(builder: (_) {
-                          final data = photos[i]['data'] ?? '';
-                          final url = photos[i]['url'] ?? '';
-                          return data.isNotEmpty
-                              ? Image.memory(base64Decode(data), height: 220, width: 160, fit: BoxFit.cover)
-                              : Image.network(url, height: 220, width: 160, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 40));
-                        }),
+                        child: _buildPhotoImage(
+                          photos[i]['data'] ?? '',
+                          url: photos[i]['url'] ?? '',
+                          height: 220,
+                          width: 160,
+                        ),
                       ),
                     ],
                   ),
@@ -272,6 +272,20 @@ class _PhotoScreenState extends State<PhotoScreen> {
       await StorageService.deletePhoto(id);
       await _loadPhotos();
     }
+  }
+
+  Widget _buildPhotoImage(String data, {double? height, double? width, String? url}) {
+    if (data.isNotEmpty) {
+      try {
+        final bytes = base64Decode(data);
+        return Image.memory(bytes, fit: BoxFit.cover, height: height, width: width);
+      } catch (_) {}
+    }
+    if (url != null && url.isNotEmpty) {
+      return Image.network(url, fit: BoxFit.cover, height: height, width: width,
+          errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 40));
+    }
+    return const Icon(Icons.broken_image, size: 40);
   }
 
   Widget _buildWarning(String text) {

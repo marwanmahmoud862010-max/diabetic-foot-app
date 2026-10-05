@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/request-otp.js": {
+      "maxDuration": 30
+    },
+    "api/verify-otp.js": {
+      "maxDuration": 10
+    },
+    "api/confirm-reset.js": {
+      "maxDuration": 10
+    }
+  }
+}

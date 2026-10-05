@@ -51,7 +51,11 @@ class MyApp extends StatelessWidget {
         return ValueListenableBuilder<ThemeMode>(
           valueListenable: themeModeNotifier,
           builder: (context, mode, _) {
-            return MaterialApp(
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: MediaQuery.of(context).textScaler.clamp(maxScaleFactor: 1.3),
+              ),
+              child: MaterialApp(
               title: LanguageService.t('app_name'),
               locale: Locale(lang),
               themeMode: mode,
@@ -87,6 +91,7 @@ class MyApp extends StatelessWidget {
                 ),
               ),
               home: const SplashScreen(),
+            ),
             );
           },
         );

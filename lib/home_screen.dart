@@ -17,6 +17,7 @@ import 'profile_screen.dart';
 import 'report_screen.dart';
 import 'researches_screen.dart';
 import 'ai_chat_screen.dart';
+import 'feedback_screen.dart';
 import 'route_transition.dart';
 import 'login_screen.dart';
 import 'theme_service.dart';
@@ -261,6 +262,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               subtitle: LanguageService.t('doctor_report_sub'),
               color: Colors.red,
               onTap: () => pushPage(context, const ReportScreen()),
+            ),
+            const SizedBox(height: 12),
+            _buildCard(context,
+              icon: Icons.campaign,
+              title: LanguageService.t('feedback'),
+              subtitle: LanguageService.t('feedback_sub'),
+              color: Colors.blueGrey,
+              onTap: () => pushPage(
+                context,
+                FeedbackScreen(sourceScreen: LanguageService.t('screen_home')),
+              ),
             ),
           ],
         ),

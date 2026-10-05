@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'language_service.dart';
+
+import 'auth_api_service.dart';
 import 'connectivity_service.dart';
+import 'language_service.dart';
 import 'widgets/dark_mode_toggle.dart';
+import 'otp_verify_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -15,7 +16,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
   bool _loading = false;
-  bool _done = false;
 
   @override
   void dispose() {
@@ -23,104 +23,65 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  Future<void> _sendResetEmail() async {
+  Future<void> _requestOtp() async {
     final email = emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       _showSnack(LanguageService.t('forgot_email_empty'));
       return;
     }
     if (!await ConnectivityService.check()) {
+      if (!mounted) return;
       _showSnack(LanguageService.t('offline_desc'));
       return;
     }
+
     setState(() => _loading = true);
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      final outcome = await AuthApiService.requestOtp(email);
       if (!mounted) return;
-      setState(() { _loading = false; _done = true; });
-      _showSuccessDialog();
-    } on FirebaseAuthException catch (e) {
-      setState(() => _loading = false);
-      String msg;
-      switch (e.code) {
-        case 'invalid-email':
-          msg = LanguageService.t('forgot_email_empty');
+
+      switch (outcome.result) {
+        case OtpRequestResult.sent:
+          _goToOtp(email);
           break;
-        case 'user-not-found':
-          msg = LanguageService.t('forgot_user_not_found');
+        case OtpRequestResult.cooldown:
+          _showSnack(LanguageService.t('reset_resend_wait'));
           break;
-        case 'network-request-failed':
-          msg = LanguageService.t('network_error');
+        case OtpRequestResult.userNotFound:
+          _showSnack(LanguageService.t('forgot_user_not_found'));
           break;
-        default:
-          msg = LanguageService.t('forgot_email_failed');
+        case OtpRequestResult.invalidEmail:
+          _showSnack(LanguageService.t('forgot_email_empty'));
+          break;
+        case OtpRequestResult.tooManyRequests:
+          _showSnack(LanguageService.t('auth_too_many_requests'));
+          break;
+        case OtpRequestResult.failure:
+          _showSnack(LanguageService.t('forgot_email_failed'));
+          break;
       }
-      _showSnack(msg);
-    } catch (e) {
+    } on AuthApiException catch (e) {
       if (!mounted) return;
-      setState(() => _loading = false);
-      _showSnack(LanguageService.t('network_error'));
+      _showSnack(_messageFor(e.code));
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
-  Future<void> _openMailApp() async {
-    final uri = Uri.parse('mailto:');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication);
-    } else {
-      _showSnack(LanguageService.t('no_email_app'));
+  String _messageFor(String code) {
+    switch (code) {
+      case 'api_not_configured':
+        return LanguageService.t('reset_api_not_configured');
+      case 'network_error':
+        return LanguageService.t('network_error');
+      default:
+        return LanguageService.t('forgot_email_failed');
     }
   }
 
-  void _showSuccessDialog() {
-    final cs = Theme.of(context).colorScheme;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: cs.surface,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 70, height: 70,
-              decoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.mark_email_unread, color: cs.primary, size: 36),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              LanguageService.t('dialog_check_email'),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              LanguageService.t('forgot_password_email_sent'),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant, height: 1.4),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () { Navigator.pop(ctx); },
-            child: Text(LanguageService.t('dialog_later'), style: TextStyle(color: cs.onSurfaceVariant)),
-          ),
-          FilledButton.icon(
-            onPressed: () { Navigator.pop(ctx); _openMailApp(); },
-            icon: const Icon(Icons.mail_outline, size: 18),
-            label: Text(LanguageService.t('open_email_app')),
-            style: FilledButton.styleFrom(
-              backgroundColor: cs.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-        ],
-      ),
+  void _goToOtp(String email) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => OtpVerifyScreen(email: email)),
     );
   }
 
@@ -139,7 +100,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           icon: Icon(Icons.arrow_back, color: cs.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [const DarkModeToggle()],
+        actions: const [DarkModeToggle()],
       ),
       body: SafeArea(
         child: Center(
@@ -149,27 +110,39 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 90, height: 90,
-                  decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(45)),
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: cs.primary,
+                    borderRadius: BorderRadius.circular(45),
+                  ),
                   child: const Icon(Icons.lock_reset, color: Colors.white, size: 48),
                 ),
                 const SizedBox(height: 24),
-                Text(LanguageService.t('forgot_password_title'), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                Text(
+                  LanguageService.t('reset_step_email'),
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  LanguageService.t(_done ? 'forgot_password_subtitle_done' : 'forgot_password_subtitle_send'),
+                  LanguageService.t('reset_step_enter'),
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
                 ),
                 const SizedBox(height: 32),
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.email],
                   enabled: !_loading,
+                  onSubmitted: _loading ? null : (_) => _requestOtp(),
                   decoration: InputDecoration(
                     labelText: LanguageService.t('email_label'),
                     hintText: LanguageService.t('email_hint'),
                     prefixIcon: Icon(Icons.email, color: cs.primary),
-                    filled: true, fillColor: cs.surface,
+                    filled: true,
+                    fillColor: cs.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: cs.outline),
@@ -180,7 +153,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _loading || _done ? null : _sendResetEmail,
+                    onPressed: _loading ? null : _requestOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: cs.primary,
                       foregroundColor: Colors.white,
@@ -188,11 +161,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _loading
-                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text(_done
-                            ? LanguageService.t('forgot_send_again')
-                            : LanguageService.t('forgot_send_code'),
-                            style: const TextStyle(fontSize: 18)),
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text(
+                            LanguageService.t('reset_send_code'),
+                            style: const TextStyle(fontSize: 18),
+                          ),
                   ),
                 ),
               ],

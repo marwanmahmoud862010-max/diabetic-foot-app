@@ -27,6 +27,13 @@ void main() {
       expect(LanguageService.t('nonexistent_key'), equals('nonexistent_key'));
     });
 
+    test('has all form and validation keys', () async {
+      await LanguageService.load();
+      expect(LanguageService.t('enter_valid_number'), isNot(equals('enter_valid_number')));
+      expect(LanguageService.t('field_required'), isNot(equals('field_required')));
+      expect(LanguageService.t('number_only'), isNot(equals('number_only')));
+    });
+
     test('switching language updates currentLang', () async {
       await LanguageService.load();
       await LanguageService.setLang('en');

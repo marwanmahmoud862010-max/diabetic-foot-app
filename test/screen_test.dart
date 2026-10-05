@@ -50,6 +50,36 @@ void main() {
 
       expect(find.textContaining('No checkups'), findsOneWidget);
     });
+
+    testWidgets('deleting an item removes the correct entry', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'full_history': [
+          'daily_checkup||checkup_ok||2026-07-12',
+          'touch_test||touch_cat0||2026-07-11',
+        ],
+      });
+      await LanguageService.load();
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [prefsProvider.overrideWithValue(prefs)],
+          child: const MaterialApp(home: HistoryScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.textContaining('2026-07-12'), const Offset(-500, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      final raw = prefs.getStringList('full_history') ?? [];
+      expect(raw.length, equals(1));
+      expect(raw.single, contains('touch_test'));
+      expect(find.textContaining('2026-07-12'), findsNothing);
+      expect(find.textContaining('2026-07-11'), findsOneWidget);
+    });
   });
 
   group('TipsScreen', () {
