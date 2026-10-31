@@ -8,6 +8,12 @@
     },
     "api/confirm-reset.js": {
       "maxDuration": 10
+    },
+    "api/ai/chat.js": {
+      "maxDuration": 30
+    },
+    "api/ai/transcribe.js": {
+      "maxDuration": 30
     }
   }
 }
